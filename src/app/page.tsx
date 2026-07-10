@@ -68,6 +68,7 @@ export default function HomePage() {
           <Link href="/" className="block px-3 py-2 rounded bg-rose-50 text-rose-700 font-medium">📅 Citas</Link>
           <Link href="/servicios" className="block px-3 py-2 rounded hover:bg-gray-100">💅 Servicios</Link>
           <Link href="/estilistas" className="block px-3 py-2 rounded hover:bg-gray-100">👩‍🎨 Estilistas</Link>
+          <Link href="/marcas" className="block px-3 py-2 rounded hover:bg-gray-100">🏷️ Marcas</Link>
         </nav>
 
         {/* Contenido */}
