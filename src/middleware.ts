@@ -30,8 +30,10 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Rutas publicas (login) no se protegen
-  const isAuthPage = request.nextUrl.pathname.startsWith('/login')
+  // Rutas publicas que NO se protegen (login, registro, recuperar)
+  const isAuthPage = request.nextUrl.pathname.startsWith('/login') ||
+    request.nextUrl.pathname.startsWith('/registro') ||
+    request.nextUrl.pathname.startsWith('/recuperar')
 
   if (!user && !isAuthPage) {
     const url = request.nextUrl.clone()
