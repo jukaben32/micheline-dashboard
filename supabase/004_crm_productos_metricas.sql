@@ -38,6 +38,13 @@ CREATE POLICY "products_auth_all" ON products
   USING (true)
   WITH CHECK (true);
 
+-- Lectura PÚBLICA para la landing/widget (rol anon): solo ve productos activos.
+-- Es seguro: no expone datos de clientes ni citas, solo el catálogo de venta.
+DROP POLICY IF EXISTS "products_public_read" ON products;
+CREATE POLICY "products_public_read" ON products
+  FOR SELECT TO anon
+  USING (is_active = true);
+
 -- ---------------------------------------------------------------------
 --  3) POLÍTICAS para CLIENTS y APPOINTMENTS
 --  Hoy tienen RLS activado SIN política => el dashboard no ve nada.
