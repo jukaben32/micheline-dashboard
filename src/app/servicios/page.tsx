@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import Link from 'next/link'
+import Sidebar from '@/components/Sidebar'
 
 type Servicio = {
   id: string
@@ -51,12 +51,7 @@ export default function ServiciosPage() {
     <div className="min-h-screen">
       <header className="bg-rose-700 text-white px-4 py-3 font-bold">💅 Micheline · Servicios</header>
       <div className="flex">
-        <nav className="w-48 bg-white border-r min-h-[calc(100vh-49px)] p-3 text-sm hidden sm:block">
-          <Link href="/" className="block px-3 py-2 rounded hover:bg-gray-100">📅 Citas</Link>
-          <Link href="/servicios" className="block px-3 py-2 rounded hover:bg-gray-100">💅 Servicios</Link>
-          <Link href="/estilistas" className="block px-3 py-2 rounded hover:bg-gray-100">👩‍🎨 Estilistas</Link>
-          <Link href="/marcas" className="block px-3 py-2 rounded hover:bg-gray-100">🏷️ Marcas</Link>
-        </nav>
+        <Sidebar />
         <main className="flex-1 p-6">
           <h1 className="text-xl font-semibold text-gray-800 mb-4">Catálogo de servicios</h1>
 
