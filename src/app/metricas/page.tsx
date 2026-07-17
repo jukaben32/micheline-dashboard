@@ -18,6 +18,7 @@ type Stylist = { id: string; full_name: string }
 type Servicio = { id: string; name: string; price: number }
 
 const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 // Paleta de colores para los donuts (rosa a tonos cálidos)
 const COLORS = ['#e11d48', '#f43f5e', '#fb7185', '#fda4af', '#f97316', '#fb923c', '#facc15', '#a78bfa', '#38bdf8']
 
@@ -29,28 +30,35 @@ export default function MetricasPage() {
   const [serviciosTop, setServiciosTop] = useState<{ label: string; value: number; color: string }[]>([])
   const [afluencia, setAfluencia] = useState<{ label: string; value: number; color: string }[]>([])
   const [ocupacion, setOcupacion] = useState<{ label: string; value: number; color: string }[]>([])
+  // Nuevos donuts pedidos
+  const [ingresoMes, setIngresoMes] = useState<{ label: string; value: number; color: string }[]>([])
+  const [ticketEstilista, setTicketEstilista] = useState<{ label: string; value: number; color: string }[]>([])
+  const [cancelacion, setCancelacion] = useState<{ label: string; value: number; color: string }[]>([])
+  const [retencion, setRetencion] = useState<{ label: string; value: number; color: string }[]>([])
 
   const [totalCitas, setTotalCitas] = useState(0)
   const [clientesUnicos, setClientesUnicos] = useState(0)
   const [ingresoEstimado, setIngresoEstimado] = useState(0)
 
   async function cargar() {
-    // Traemos citas (no canceladas) + catálogo de servicios + estilistas
+    // Traemos citas + catálogo de servicios + estilistas
     const [{ data: a }, { data: s }, { data: st }] = await Promise.all([
       supabase.from('appointments').select('service_id, stylist_id, start_at, status, client_id, services(name)'),
       supabase.from('services').select('id, name, price'),
       supabase.from('stylists').select('id, full_name'),
     ])
-    const citas = ((a as unknown as Cita[]) || []).filter(c => c.status !== 'cancelada')
+    const citas = ((a as unknown as Cita[]) || [])
     const servicios = (s as Servicio[]) || []
     const estilistas = (st as Stylist[]) || []
 
-    // --- 1) Servicios más consumidos (donut) ---
-    const mapServ: Record<string, number> = {}
-    let ingreso = 0
     const precioPorServ: Record<string, number> = {}
     servicios.forEach(sv => (precioPorServ[sv.id] = Number(sv.price) || 0))
-    citas.forEach(c => {
+
+    // --- 1) Servicios más consumidos (donut, solo no canceladas) ---
+    const activas = citas.filter(c => c.status !== 'cancelada')
+    const mapServ: Record<string, number> = {}
+    let ingreso = 0
+    activas.forEach(c => {
       const sid = c.service_id
       if (sid) {
         mapServ[sid] = (mapServ[sid] || 0) + 1
@@ -67,32 +75,73 @@ export default function MetricasPage() {
 
     // --- 2) Afluencia por día de la semana (donut) ---
     const mapDia: Record<number, number> = {}
-    citas.forEach(c => {
+    activas.forEach(c => {
       const d = new Date(c.start_at).getDay()
       mapDia[d] = (mapDia[d] || 0) + 1
     })
-    const diaData = DIAS.map((label, i) => ({
-      label,
-      value: mapDia[i] || 0,
-      color: COLORS[i % COLORS.length],
-    }))
-    setAfluencia(diaData)
+    setAfluencia(DIAS.map((label, i) => ({ label, value: mapDia[i] || 0, color: COLORS[i % COLORS.length] })))
 
-    // --- 3) Ocupación por estilista (donut, número de citas) ---
+    // --- 3) Ocupación por estilista (donut, nº de citas) ---
     const mapEst: Record<string, number> = {}
-    citas.forEach(c => {
-      const eid = c.stylist_id
-      if (eid) mapEst[eid] = (mapEst[eid] || 0) + 1
+    activas.forEach(c => { if (c.stylist_id) mapEst[c.stylist_id] = (mapEst[c.stylist_id] || 0) + 1 })
+    setOcupacion(
+      estilistas
+        .map((e, i) => ({ label: e.full_name.split(' ')[0], value: mapEst[e.id] || 0, color: COLORS[i % COLORS.length] }))
+        .filter(d => d.value > 0)
+    )
+
+    // --- 4) Ingreso por mes (donut) — derivado del catálogo de precios ---
+    const mapMes: Record<number, number> = {}
+    activas.forEach(c => {
+      const mes = new Date(c.start_at).getMonth()
+      mapMes[mes] = (mapMes[mes] || 0) + (c.service_id ? precioPorServ[c.service_id] || 0 : 0)
     })
-    const estData = estilistas
-      .map((e, i) => ({ label: e.full_name.split(' ')[0], value: mapEst[e.id] || 0, color: COLORS[i % COLORS.length] }))
-      .filter(d => d.value > 0)
-    setOcupacion(estData)
+    setIngresoMes(
+      Object.entries(mapMes)
+        .map(([m, v]) => ({ label: MESES[Number(m)], value: Math.round(v), color: COLORS[Number(m) % COLORS.length] }))
+        .sort((x, y) => MESES.indexOf(x.label) - MESES.indexOf(y.label))
+    )
+
+    // --- 5) Ticket promedio por estilista (donut) ---
+    const sumaEst: Record<string, { tot: number; n: number }> = {}
+    activas.forEach(c => {
+      if (!c.stylist_id || !c.service_id) return
+      const p = precioPorServ[c.service_id] || 0
+      if (!sumaEst[c.stylist_id]) sumaEst[c.stylist_id] = { tot: 0, n: 0 }
+      sumaEst[c.stylist_id].tot += p
+      sumaEst[c.stylist_id].n += 1
+    })
+    setTicketEstilista(
+      estilistas
+        .map((e, i) => {
+          const s = sumaEst[e.id]
+          const prom = s && s.n ? s.tot / s.n : 0
+          return { label: e.full_name.split(' ')[0], value: Math.round(prom), color: COLORS[i % COLORS.length] }
+        })
+        .filter(d => d.value > 0)
+    )
+
+    // --- 6) Tasa de cancelación (donut: completadas/confirmadas vs canceladas) ---
+    const canceladas = citas.filter(c => c.status === 'cancelada').length
+    const otras = citas.length - canceladas
+    setCancelacion([
+      { label: 'Activas', value: otras, color: '#f43f5e' },
+      { label: 'Canceladas', value: canceladas, color: '#94a3b8' },
+    ])
+
+    // --- 7) Retención de clientes (donut: recurrente vs nuevo) ---
+    const porCliente: Record<string, number> = {}
+    citas.forEach(c => { if (c.client_id) porCliente[c.client_id] = (porCliente[c.client_id] || 0) + 1 })
+    let recurrentes = 0, nuevos = 0
+    Object.values(porCliente).forEach(n => { if (n > 1) recurrentes++; else nuevos++ })
+    setRetencion([
+      { label: 'Recurrentes', value: recurrentes, color: '#a78bfa' },
+      { label: 'Nuevos', value: nuevos, color: '#38bdf8' },
+    ])
 
     // Resumen
     setTotalCitas(citas.length)
     setClientesUnicos(new Set(citas.map(c => c.client_id).filter(Boolean)).size)
-
     setLoading(false)
   }
   useEffect(() => { cargar() }, [])
@@ -107,18 +156,9 @@ export default function MetricasPage() {
 
           {/* Tarjetas resumen */}
           <div className="grid grid-cols-3 gap-4 mb-8">
-            <div className="bg-white border rounded-lg p-4 shadow-sm">
-              <div className="text-xs text-gray-400">Citas (no canceladas)</div>
-              <div className="text-2xl font-bold text-gray-800">{loading ? '…' : totalCitas}</div>
-            </div>
-            <div className="bg-white border rounded-lg p-4 shadow-sm">
-              <div className="text-xs text-gray-400">Clientes únicos</div>
-              <div className="text-2xl font-bold text-gray-800">{loading ? '…' : clientesUnicos}</div>
-            </div>
-            <div className="bg-white border rounded-lg p-4 shadow-sm">
-              <div className="text-xs text-gray-400">Ingreso estimado</div>
-              <div className="text-2xl font-bold text-gray-800">${loading ? '…' : ingresoEstimado.toFixed(2)}</div>
-            </div>
+            <ResumenCard label="Citas (totales)" valor={loading ? '…' : String(totalCitas)} />
+            <ResumenCard label="Clientes únicos" valor={loading ? '…' : String(clientesUnicos)} />
+            <ResumenCard label="Ingreso estimado" valor={loading ? '…' : `$${ingresoEstimado.toFixed(2)}`} />
           </div>
 
           {loading ? <p className="text-gray-400">Cargando métricas…</p> : (
@@ -140,10 +180,44 @@ export default function MetricasPage() {
                 <Donut data={ocupacion} centerValue={String(ocupacion.reduce((s, d) => s + d.value, 0))} centerLabel="citas" />
                 {ocupacion.length === 0 ? <p className="text-xs text-gray-400 mt-2">Sin citas asignadas</p> : <Leyenda data={ocupacion} />}
               </GraficaCard>
+
+              {/* Donut 4 — NUEVO: Ingreso por mes */}
+              <GraficaCard titulo="Ingreso por mes ($)">
+                <Donut data={ingresoMes} centerValue={`$${ingresoMes.reduce((s, d) => s + d.value, 0)}`} centerLabel="total" />
+                <Leyenda data={ingresoMes.map(d => ({ ...d, label: `${d.label} · $${d.value}` }))} />
+              </GraficaCard>
+
+              {/* Donut 5 — NUEVO: Ticket promedio por estilista */}
+              <GraficaCard titulo="Ticket promedio por estilista ($)">
+                <Donut data={ticketEstilista} centerValue={`$${Math.round(ticketEstilista.reduce((s, d) => s + d.value, 0) / (ticketEstilista.length || 1))}`} centerLabel="prom" />
+                <Leyenda data={ticketEstilista.map(d => ({ ...d, label: `${d.label} · $${d.value}` }))} />
+              </GraficaCard>
+
+              {/* Donut 6 — NUEVO: Tasa de cancelación */}
+              <GraficaCard titulo="Tasa de cancelación">
+                <Donut data={cancelacion} centerValue={`${cancelacion.length ? Math.round((cancelacion[1].value / (cancelacion[0].value + cancelacion[1].value)) * 100) : 0}%`} centerLabel="canceladas" />
+                <Leyenda data={cancelacion} />
+              </GraficaCard>
+
+              {/* Donut 7 — NUEVO: Retención de clientes */}
+              <GraficaCard titulo="Retención de clientes">
+                <Donut data={retencion} centerValue={String(retencion.reduce((s, d) => s + d.value, 0))} centerLabel="clientes" />
+                <Leyenda data={retencion} />
+              </GraficaCard>
             </div>
           )}
         </main>
       </div>
+    </div>
+  )
+}
+
+// Tarjeta resumen compacta
+function ResumenCard({ label, valor }: { label: string; valor: string }) {
+  return (
+    <div className="bg-white border rounded-lg p-4 shadow-sm">
+      <div className="text-xs text-gray-400">{label}</div>
+      <div className="text-2xl font-bold text-gray-800">{valor}</div>
     </div>
   )
 }
