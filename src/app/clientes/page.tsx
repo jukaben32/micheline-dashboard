@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import Sidebar from '@/components/Sidebar'
+import AppShell from '@/components/AppShell'
 
 // Cliente base (tabla clients ya existe en la BD)
 type Cliente = {
@@ -105,15 +105,11 @@ export default function ClientesPage() {
   const vips = clientes.filter(c => c.category === 'vip').length
 
   return (
-    <div className="min-h-screen">
-      <header className="bg-gradient-to-r from-rose-700 to-rose-500 text-white px-4 py-3 font-bold shadow-sm">💅 Micheline · Clientes (CRM)</header>
-      <div className="flex">
-        <Sidebar />
-        <main className="flex-1 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-semibold text-gray-800">Clientes</h1>
-            <span className="text-sm text-gray-500">{total} clientes · {vips} VIP</span>
-          </div>
+    <AppShell titulo="Clientes (CRM)">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-gray-800">Clientes</h2>
+        <span className="text-sm text-gray-500">{total} clientes · {vips} VIP</span>
+      </div>
 
           {/* Formulario agregar cliente */}
           <form onSubmit={agregar} className="bg-white border rounded-lg p-4 mb-6 grid grid-cols-2 md:grid-cols-5 gap-3 items-end shadow-sm">
@@ -190,8 +186,6 @@ export default function ClientesPage() {
               </table>
             </div>
           )}
-        </main>
-      </div>
-    </div>
+    </AppShell>
   )
 }

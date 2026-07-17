@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import Sidebar from '@/components/Sidebar'
+import AppShell from '@/components/AppShell'
 
 type Marca = { id: string; name: string; is_active: boolean }
 type Linea = {
@@ -64,11 +64,8 @@ export default function MarcasPage() {
   }
 
   return (
-    <div className="min-h-screen">
-      <header className="bg-gradient-to-r from-rose-700 to-rose-500 text-white px-4 py-3 font-bold shadow-sm">💅 Micheline · Marcas / Líneas</header>
-      <div className="flex">
-        <Sidebar />
-        <main className="flex-1 p-6 space-y-8">
+    <AppShell titulo="Marcas / Líneas">
+      <div className="space-y-8">
           <section>
             <h1 className="text-xl font-semibold text-gray-800 mb-4">Marcas de productos</h1>
             <form onSubmit={agregarMarca} className="bg-white border rounded-lg p-4 mb-4 flex gap-3 items-end shadow-sm">
@@ -129,8 +126,7 @@ export default function MarcasPage() {
               </div>
             )}
           </section>
-        </main>
       </div>
-    </div>
+    </AppShell>
   )
 }

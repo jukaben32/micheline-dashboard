@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import Sidebar from '@/components/Sidebar'
+import AppShell from '@/components/AppShell'
 import Donut from '@/components/Donut'
 
 // Tipos de las consultas
@@ -147,12 +147,8 @@ export default function MetricasPage() {
   useEffect(() => { cargar() }, [])
 
   return (
-    <div className="min-h-screen">
-      <header className="bg-gradient-to-r from-rose-700 to-rose-500 text-white px-4 py-3 font-bold shadow-sm">💅 Micheline · Métricas</header>
-      <div className="flex">
-        <Sidebar />
-        <main className="flex-1 p-6">
-          <h1 className="text-xl font-semibold text-gray-800 mb-4">Panel de métricas</h1>
+    <AppShell titulo="Métricas">
+      <h2 className="text-lg font-semibold text-gray-800 mb-4">Panel de métricas</h2>
 
           {/* Tarjetas resumen */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
@@ -206,9 +202,7 @@ export default function MetricasPage() {
               </GraficaCard>
             </div>
           )}
-        </main>
-      </div>
-    </div>
+    </AppShell>
   )
 }
 

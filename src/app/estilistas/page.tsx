@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import Sidebar from '@/components/Sidebar'
+import AppShell from '@/components/AppShell'
 
 type Estilista = {
   id: string
@@ -44,46 +44,49 @@ export default function EstilistasPage() {
   }
 
   return (
-    <div className="min-h-screen">
-      <header className="bg-gradient-to-r from-rose-700 to-rose-500 text-white px-4 py-3 font-bold shadow-sm">💅 Micheline · Estilistas</header>
-      <div className="flex">
-        <Sidebar />
-        <main className="flex-1 p-6">
-          <h1 className="text-xl font-semibold text-gray-800 mb-4">Equipo de estilistas</h1>
+    <AppShell titulo="Estilistas">
+      <h2 className="text-lg font-semibold text-gray-800 mb-4">Equipo de estilistas</h2>
 
-          <form onSubmit={agregar} className="bg-white border rounded-lg p-4 mb-6 flex flex-wrap gap-3 items-end shadow-sm">
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Nombre</label>
-              <input value={nombre} onChange={e => setNombre(e.target.value)} required className="border rounded px-3 py-1.5 text-sm w-48" placeholder="Micheline" />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Especialidad</label>
-              <input value={especialidad} onChange={e => setEspecialidad(e.target.value)} className="border rounded px-3 py-1.5 text-sm w-48" placeholder="Manicura & Arte" />
-            </div>
-            <button className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-1.5 rounded text-sm">Agregar</button>
-          </form>
+      <form onSubmit={agregar} className="animar-aparecer bg-white border border-gray-100 rounded-xl p-4 mb-6 flex flex-wrap gap-3 items-end shadow-sm">
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">Nombre</label>
+          <input value={nombre} onChange={e => setNombre(e.target.value)} required className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-48 focus:border-rose-300 outline-none" placeholder="Micheline" />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">Especialidad</label>
+          <input value={especialidad} onChange={e => setEspecialidad(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-48 focus:border-rose-300 outline-none" placeholder="Manicura & Arte" />
+        </div>
+        <button className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">Agregar</button>
+      </form>
 
-          {loading ? <p className="text-gray-400">Cargando…</p> : (
-            <div className="space-y-2">
-              {estilistas.map(e => (
-                <div key={e.id} className="bg-white border rounded-lg p-3 flex items-center justify-between shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <span className={`w-2 h-2 rounded-full ${e.is_active ? 'bg-green-500' : 'bg-gray-300'}`} />
-                    <span className="font-medium text-gray-800">{e.full_name}</span>
-                    <span className="text-sm text-gray-500">{e.specialty}</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => toggle(e.id, e.is_active)} className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200">
-                      {e.is_active ? 'Desactivar' : 'Activar'}
-                    </button>
-                    <button onClick={() => borrar(e.id)} className="text-xs px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200">Borrar</button>
-                  </div>
+      {loading ? <p className="text-gray-400">Cargando…</p> : (
+        <div className="space-y-2">
+          {estilistas.map(e => (
+            <div key={e.id} className="animar-aparecer bg-white border border-gray-100 rounded-xl p-3 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3">
+                {/* Avatar con la inicial */}
+                <div className="h-9 w-9 rounded-full bg-rose-100 text-rose-700 grid place-items-center text-sm font-semibold">
+                  {e.full_name ? e.full_name[0].toUpperCase() : '·'}
                 </div>
-              ))}
+                <div>
+                  <div className="font-medium text-gray-800 flex items-center gap-2">
+                    {e.full_name}
+                    <span className={`w-2 h-2 rounded-full ${e.is_active ? 'bg-green-500' : 'bg-gray-300'}`} />
+                  </div>
+                  <div className="text-sm text-gray-500">{e.specialty || '—'}</div>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => toggle(e.id, e.is_active)} className="text-xs px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">
+                  {e.is_active ? 'Desactivar' : 'Activar'}
+                </button>
+                <button onClick={() => borrar(e.id)} className="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">Borrar</button>
+              </div>
             </div>
-          )}
-        </main>
-      </div>
-    </div>
+          ))}
+          {estilistas.length === 0 && <p className="text-gray-400">No hay estilistas aún.</p>}
+        </div>
+      )}
+    </AppShell>
   )
 }

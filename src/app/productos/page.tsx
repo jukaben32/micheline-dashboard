@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import Sidebar from '@/components/Sidebar'
+import AppShell from '@/components/AppShell'
 
 // Tipo de un producto del inventario
 type Producto = {
@@ -74,15 +74,11 @@ export default function ProductosPage() {
   const valorInventario = productos.reduce((s, p) => s + (p.price * (p.stock || 0)), 0)
 
   return (
-    <div className="min-h-screen">
-      <header className="bg-gradient-to-r from-rose-700 to-rose-500 text-white px-4 py-3 font-bold shadow-sm">💅 Micheline · Productos (Inventario)</header>
-      <div className="flex">
-        <Sidebar />
-        <main className="flex-1 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-semibold text-gray-800">Inventario de productos</h1>
-            <span className="text-sm text-gray-500">Valor stock: ${valorInventario.toFixed(2)}</span>
-          </div>
+    <AppShell titulo="Productos (Inventario)">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-gray-800">Inventario de productos</h2>
+        <span className="text-sm text-gray-500">Valor stock: ${valorInventario.toFixed(2)}</span>
+      </div>
 
           {/* Formulario para agregar producto */}
           <form onSubmit={agregar} className="bg-white border rounded-lg p-4 mb-6 grid grid-cols-2 md:grid-cols-4 gap-3 items-end shadow-sm">
@@ -156,8 +152,6 @@ export default function ProductosPage() {
               {productos.length === 0 && <p className="text-gray-400">No hay productos aún.</p>}
             </div>
           )}
-        </main>
-      </div>
-    </div>
+    </AppShell>
   )
 }

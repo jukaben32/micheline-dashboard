@@ -35,15 +35,19 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-rose-50 px-4">
-      <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl p-8">
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-rose-100 via-rose-50 to-white px-4">
+      <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl p-8 animar-aparecer">
+        {/* Logo en círculo */}
+        <div className="mx-auto mb-4 h-14 w-14 rounded-full bg-gradient-to-br from-rose-600 to-rose-400 grid place-items-center text-2xl shadow-md">
+          💅
+        </div>
         <h1 className="text-2xl font-bold text-center text-rose-900 mb-1">Micheline</h1>
         <p className="text-center text-sm text-gray-500 mb-6">Panel de administración</p>
 
         <button
           onClick={loginGoogle}
           disabled={loading}
-          className="w-full mb-4 py-2.5 px-4 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+          className="w-full mb-4 py-2.5 px-4 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
         >
           <span>🔵</span> Entrar con Google
         </button>
@@ -56,16 +60,16 @@ export default function LoginPage() {
           <input
             type="email" required placeholder="Email"
             value={email} onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-rose-400"
+            className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:border-rose-400 outline-none transition-colors"
           />
           <input
             type="password" required placeholder="Contraseña"
             value={password} onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-rose-400"
+            className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:border-rose-400 outline-none transition-colors"
           />
           <button
             type="submit" disabled={loading}
-            className="w-full py-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold disabled:opacity-50"
+            className="w-full py-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold disabled:opacity-50 transition-colors"
           >
             {loading ? 'Entrando...' : 'Entrar'}
           </button>
