@@ -47,7 +47,7 @@ export default function EstilistasPage() {
     <AppShell titulo="Estilistas">
       <h2 className="text-lg font-semibold text-gray-800 mb-4">Equipo de estilistas</h2>
 
-      <form onSubmit={agregar} className="animar-aparecer bg-white border border-gray-100 rounded-xl p-4 mb-6 flex flex-wrap gap-3 items-end shadow-sm">
+      <form onSubmit={agregar} className="animar-aparecer bg-white border border-[#ece8e5] rounded-2xl p-4 mb-6 flex flex-wrap gap-3 items-end shadow-sm">
         <div>
           <label className="block text-xs text-gray-500 mb-1">Nombre</label>
           <input value={nombre} onChange={e => setNombre(e.target.value)} required className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-48 focus:border-rose-300 outline-none" placeholder="Micheline" />
@@ -62,7 +62,7 @@ export default function EstilistasPage() {
       {loading ? <p className="text-gray-400">Cargando…</p> : (
         <div className="space-y-2">
           {estilistas.map(e => (
-            <div key={e.id} className="animar-aparecer bg-white border border-gray-100 rounded-xl p-3 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
+            <div key={e.id} className="animar-aparecer bg-white border border-[#ece8e5] rounded-2xl p-3 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center gap-3">
                 {/* Avatar con la inicial */}
                 <div className="h-9 w-9 rounded-full bg-rose-100 text-rose-700 grid place-items-center text-sm font-semibold">

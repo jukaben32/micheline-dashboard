@@ -15,7 +15,7 @@ type Cita = {
   stylists?: { full_name: string }[] | null
 }
 
-// Colores de estado reutilizados en toda la página
+// Colores de estado tipo píldora
 const ESTADO_COLOR: Record<string, string> = {
   confirmed: 'bg-green-100 text-green-700',
   cancelled: 'bg-red-100 text-red-700',
@@ -25,12 +25,11 @@ const ESTADO_COLOR: Record<string, string> = {
 // Pagina principal: resumen + próximas citas + citas del día
 export default function HomePage() {
   const supabase = createClient()
-  const [citas, setCitas] = useState<Cita[]>([])          // citas del día seleccionado
-  const [proximas, setProximas] = useState<Cita[]>([])    // próximas citas (desde ahora)
+  const [citas, setCitas] = useState<Cita[]>([])
+  const [proximas, setProximas] = useState<Cita[]>([])
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0])
   const [loading, setLoading] = useState(true)
 
-  // Carga las citas del día elegido
   async function cargarDia() {
     setLoading(true)
     const desde = `${fecha}T00:00:00-04:00`
@@ -45,7 +44,6 @@ export default function HomePage() {
     setLoading(false)
   }
 
-  // Carga las PRÓXIMAS citas (desde el momento actual hacia adelante)
   async function cargarProximas() {
     const ahora = new Date().toISOString()
     const { data } = await supabase
@@ -61,68 +59,64 @@ export default function HomePage() {
   useEffect(() => { cargarDia() }, [fecha])
   useEffect(() => { cargarProximas() }, [])
 
-  // Métricas rápidas para las tarjetas resumen
   const activas = citas.filter(c => c.status !== 'cancelled').length
   const canceladas = citas.filter(c => c.status === 'cancelled').length
-  const siguiente = proximas[0] // la cita más próxima
+  const siguiente = proximas[0]
 
   return (
     <AppShell titulo="Resumen general">
-      {/* Tarjetas resumen */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <ResumenCard
-          icono="📅" acento="rose"
-          label="Citas hoy"
-          valor={loading ? '…' : String(activas)}
-        />
-        <ResumenCard
-          icono="❌" acento="amber"
-          label="Canceladas hoy"
-          valor={loading ? '…' : String(canceladas)}
-        />
-        <ResumenCard
-          icono="⏭️" acento="violet"
-          label="Próxima cita"
-          valor={siguiente
-            ? new Date(siguiente.start_at).toLocaleString('es', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
-            : '—'}
-        />
+      {/* Fila de KPIs — estilo Nixtio: números grandes, tarjeta oscura de acento */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {/* Tarjeta oscura destacada */}
+        <div className="card-dark animar-aparecer flex flex-col justify-between min-h-[130px]">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-white/60">Citas hoy</span>
+            <span className="text-xl">📅</span>
+          </div>
+          <div className="kpi mt-4">{loading ? '…' : activas}</div>
+        </div>
+
+        <KpiCard icono="⏭️" label="Próxima cita" valor={siguiente
+          ? new Date(siguiente.start_at).toLocaleString('es', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+          : '—'} pequeno />
+
+        <KpiCard icono="🗓️" label="En agenda" valor={loading ? '…' : String(proximas.length)} />
+
+        <KpiCard icono="❌" label="Canceladas hoy" valor={loading ? '…' : String(canceladas)} />
       </div>
 
       {/* Dos columnas: próximas citas + citas del día */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* PANEL: Próximas citas */}
-        <section className="animar-aparecer bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="font-semibold text-gray-800 flex items-center gap-2">
+        <section className="card animar-aparecer !p-0 overflow-hidden">
+          <div className="px-6 py-4 flex items-center justify-between">
+            <h2 className="font-semibold text-gray-900 flex items-center gap-2">
               <span>⏭️</span> Próximas citas
             </h2>
-            <span className="text-xs text-gray-400">{proximas.length} en agenda</span>
+            <span className="text-xs text-gray-400 bg-gray-100 rounded-full px-3 py-1">{proximas.length} en agenda</span>
           </div>
 
           {proximas.length === 0 ? (
-            <p className="p-5 text-gray-400 text-sm">No hay próximas citas agendadas.</p>
+            <p className="px-6 pb-6 text-gray-400 text-sm">No hay próximas citas agendadas.</p>
           ) : (
             <ul className="divide-y divide-gray-50">
               {proximas.map((c) => (
-                <li key={c.id} className="px-5 py-3 flex items-center gap-3 hover:bg-rose-50/40 transition-colors">
-                  {/* Bloque de fecha/hora */}
+                <li key={c.id} className="px-6 py-3 flex items-center gap-3 hover:bg-rose-50/40 transition-colors">
                   <div className="w-14 text-center shrink-0">
                     <div className="text-[11px] uppercase text-rose-500 font-medium">
                       {new Date(c.start_at).toLocaleDateString('es', { day: '2-digit', month: 'short' })}
                     </div>
-                    <div className="text-sm font-bold text-gray-800">
+                    <div className="text-sm font-bold text-gray-900">
                       {new Date(c.start_at).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
-                  {/* Datos de la cita */}
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-800 truncate">{c.client_name}</div>
+                    <div className="font-medium text-gray-900 truncate">{c.client_name}</div>
                     <div className="text-xs text-gray-500 truncate">
                       {c.services?.[0]?.name || 'Servicio'} · {c.stylists?.[0]?.full_name || 'Estilista'}
                     </div>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full shrink-0 ${ESTADO_COLOR[c.status || 'pendiente'] || ESTADO_COLOR.pendiente}`}>
+                  <span className={`text-xs px-2.5 py-1 rounded-full shrink-0 ${ESTADO_COLOR[c.status || 'pendiente'] || ESTADO_COLOR.pendiente}`}>
                     {c.status || 'pendiente'}
                   </span>
                 </li>
@@ -131,36 +125,36 @@ export default function HomePage() {
           )}
         </section>
 
-        {/* PANEL: Citas del día (con selector de fecha) */}
-        <section className="animar-aparecer bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between gap-2">
-            <h2 className="font-semibold text-gray-800 flex items-center gap-2">
+        {/* PANEL: Citas del día */}
+        <section className="card animar-aparecer !p-0 overflow-hidden">
+          <div className="px-6 py-4 flex items-center justify-between gap-2">
+            <h2 className="font-semibold text-gray-900 flex items-center gap-2">
               <span>📅</span> Citas del día
             </h2>
             <input
               type="date" value={fecha}
               onChange={(e) => setFecha(e.target.value)}
-              className="border border-gray-200 rounded-lg px-2 py-1 text-sm focus:border-rose-300 outline-none"
+              className="border border-gray-200 rounded-xl px-3 py-1.5 text-sm focus:border-rose-300 outline-none"
             />
           </div>
 
           {loading ? (
-            <p className="p-5 text-gray-400 text-sm">Cargando…</p>
+            <p className="px-6 pb-6 text-gray-400 text-sm">Cargando…</p>
           ) : citas.length === 0 ? (
-            <p className="p-5 text-gray-400 text-sm">No hay citas para esta fecha.</p>
+            <p className="px-6 pb-6 text-gray-400 text-sm">No hay citas para esta fecha.</p>
           ) : (
             <ul className="divide-y divide-gray-50">
               {citas.map((c) => (
-                <li key={c.id} className="px-5 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                <li key={c.id} className="px-6 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors">
                   <div className="min-w-0">
-                    <div className="font-medium text-gray-800 truncate">
+                    <div className="font-medium text-gray-900 truncate">
                       {new Date(c.start_at).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })} — {c.client_name}
                     </div>
                     <div className="text-xs text-gray-500 truncate">
                       {c.services?.[0]?.name || 'Servicio'} · {c.stylists?.[0]?.full_name || 'Estilista'}
                     </div>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full shrink-0 ${ESTADO_COLOR[c.status || 'pendiente'] || ESTADO_COLOR.pendiente}`}>
+                  <span className={`text-xs px-2.5 py-1 rounded-full shrink-0 ${ESTADO_COLOR[c.status || 'pendiente'] || ESTADO_COLOR.pendiente}`}>
                     {c.status || 'pendiente'}
                   </span>
                 </li>
@@ -173,34 +167,25 @@ export default function HomePage() {
   )
 }
 
-// Tarjeta resumen con icono en círculo de color (misma estética que Métricas)
-function ResumenCard({
+// Tarjeta KPI clara (número grande estilo Nixtio)
+function KpiCard({
   label,
   valor,
   icono,
-  acento = 'rose',
+  pequeno = false,
 }: {
   label: string
   valor: string
   icono?: string
-  acento?: 'rose' | 'violet' | 'amber'
+  pequeno?: boolean
 }) {
-  const acentos: Record<string, string> = {
-    rose: 'bg-rose-50 text-rose-600',
-    violet: 'bg-violet-50 text-violet-600',
-    amber: 'bg-amber-50 text-amber-600',
-  }
   return (
-    <div className="animar-aparecer bg-white border border-gray-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center gap-4">
-      {icono && (
-        <div className={`h-11 w-11 rounded-full grid place-items-center text-xl ${acentos[acento]}`}>
-          {icono}
-        </div>
-      )}
-      <div className="min-w-0">
-        <div className="text-xs text-gray-400">{label}</div>
-        <div className="text-lg font-bold text-gray-800 truncate">{valor}</div>
+    <div className="card animar-aparecer flex flex-col justify-between min-h-[130px]">
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-gray-500">{label}</span>
+        {icono && <span className="text-xl">{icono}</span>}
       </div>
+      <div className={`mt-4 text-gray-900 ${pequeno ? 'text-lg font-bold truncate' : 'kpi'}`}>{valor}</div>
     </div>
   )
 }

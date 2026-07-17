@@ -112,22 +112,22 @@ export default function ClientesPage() {
       </div>
 
           {/* Formulario agregar cliente */}
-          <form onSubmit={agregar} className="bg-white border rounded-lg p-4 mb-6 grid grid-cols-2 md:grid-cols-5 gap-3 items-end shadow-sm">
+          <form onSubmit={agregar} className="bg-white border border-[#ece8e5] rounded-2xl p-4 mb-6 grid grid-cols-2 md:grid-cols-5 gap-3 items-end shadow-sm">
             <div>
               <label className="block text-xs text-gray-500 mb-1">Nombre</label>
-              <input value={nombre} onChange={e => setNombre(e.target.value)} required className="border rounded px-3 py-1.5 text-sm w-full" placeholder="Ana Pérez" />
+              <input value={nombre} onChange={e => setNombre(e.target.value)} required className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-rose-300 outline-none w-full" placeholder="Ana Pérez" />
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1">Teléfono</label>
-              <input value={telefono} onChange={e => setTelefono(e.target.value)} className="border rounded px-3 py-1.5 text-sm w-full" placeholder="809..." />
+              <input value={telefono} onChange={e => setTelefono(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-rose-300 outline-none w-full" placeholder="809..." />
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1">Email</label>
-              <input value={email} onChange={e => setEmail(e.target.value)} type="email" className="border rounded px-3 py-1.5 text-sm w-full" placeholder="ana@mail.com" />
+              <input value={email} onChange={e => setEmail(e.target.value)} type="email" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-rose-300 outline-none w-full" placeholder="ana@mail.com" />
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1">Categoría</label>
-              <select value={categoria} onChange={e => setCategoria(e.target.value)} className="border rounded px-3 py-1.5 text-sm w-full">
+              <select value={categoria} onChange={e => setCategoria(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-rose-300 outline-none w-full">
                 <option value="nuevo">Nuevo</option>
                 <option value="frecuente">Frecuente</option>
                 <option value="vip">VIP</option>
@@ -136,14 +136,14 @@ export default function ClientesPage() {
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1">Cumpleaños</label>
-              <input value={cumple} onChange={e => setCumple(e.target.value)} type="date" className="border rounded px-3 py-1.5 text-sm w-full" />
+              <input value={cumple} onChange={e => setCumple(e.target.value)} type="date" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-rose-300 outline-none w-full" />
             </div>
-            <button className="col-span-2 md:col-span-5 bg-rose-600 hover:bg-rose-700 text-white px-4 py-1.5 rounded text-sm">Agregar cliente</button>
+            <button className="col-span-2 md:col-span-5 bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">Agregar cliente</button>
           </form>
 
           {/* Tabla de clientes */}
           {loading ? <p className="text-gray-400">Cargando…</p> : (
-            <div className="bg-white border rounded-lg shadow-sm overflow-x-auto">
+            <div className="bg-white border border-[#ece8e5] rounded-2xl shadow-sm overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 text-gray-500 text-left">
                   <tr>

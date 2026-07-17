@@ -68,12 +68,12 @@ export default function MarcasPage() {
       <div className="space-y-8">
           <section>
             <h1 className="text-xl font-semibold text-gray-800 mb-4">Marcas de productos</h1>
-            <form onSubmit={agregarMarca} className="bg-white border rounded-lg p-4 mb-4 flex gap-3 items-end shadow-sm">
+            <form onSubmit={agregarMarca} className="bg-white border border-[#ece8e5] rounded-2xl p-4 mb-4 flex gap-3 items-end shadow-sm">
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Nueva marca</label>
-                <input value={nombreMarca} onChange={e => setNombreMarca(e.target.value)} required className="border rounded px-3 py-1.5 text-sm w-56" placeholder="Gel Premium" />
+                <input value={nombreMarca} onChange={e => setNombreMarca(e.target.value)} required className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-rose-300 outline-none w-56" placeholder="Gel Premium" />
               </div>
-              <button className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-1.5 rounded text-sm">Agregar</button>
+              <button className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">Agregar</button>
             </form>
             <div className="flex flex-wrap gap-2">
               {marcas.map(m => (
@@ -87,32 +87,32 @@ export default function MarcasPage() {
 
           <section>
             <h2 className="text-lg font-semibold text-gray-800 mb-3">Líneas por servicio (ajuste de precio)</h2>
-            <form onSubmit={agregarLinea} className="bg-white border rounded-lg p-4 mb-4 flex flex-wrap gap-3 items-end shadow-sm">
+            <form onSubmit={agregarLinea} className="bg-white border border-[#ece8e5] rounded-2xl p-4 mb-4 flex flex-wrap gap-3 items-end shadow-sm">
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Servicio</label>
-                <select value={selServicio} onChange={e => setSelServicio(e.target.value)} required className="border rounded px-3 py-1.5 text-sm w-48">
+                <select value={selServicio} onChange={e => setSelServicio(e.target.value)} required className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-rose-300 outline-none w-48">
                   <option value="">Selecciona…</option>
                   {servicios.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Marca</label>
-                <select value={selMarca} onChange={e => setSelMarca(e.target.value)} required className="border rounded px-3 py-1.5 text-sm w-40">
+                <select value={selMarca} onChange={e => setSelMarca(e.target.value)} required className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-rose-300 outline-none w-40">
                   <option value="">Selecciona…</option>
                   {marcas.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Ajuste +$</label>
-                <input value={ajuste} onChange={e => setAjuste(e.target.value)} type="number" step="0.01" className="border rounded px-3 py-1.5 text-sm w-24" />
+                <input value={ajuste} onChange={e => setAjuste(e.target.value)} type="number" step="0.01" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-rose-300 outline-none w-24" />
               </div>
-              <button className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-1.5 rounded text-sm">Vincular</button>
+              <button className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">Vincular</button>
             </form>
 
             {loading ? <p className="text-gray-400">Cargando…</p> : (
               <div className="space-y-2">
                 {lineas.map(l => (
-                  <div key={l.id} className="bg-white border rounded-lg p-3 flex items-center justify-between shadow-sm">
+                  <div key={l.id} className="bg-white border border-[#ece8e5] rounded-2xl p-3 flex items-center justify-between shadow-sm">
                     <div>
                       <span className="font-medium text-gray-800">{l.services?.[0]?.name}</span>
                       <span className="text-gray-400"> + </span>

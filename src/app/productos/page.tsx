@@ -81,14 +81,14 @@ export default function ProductosPage() {
       </div>
 
           {/* Formulario para agregar producto */}
-          <form onSubmit={agregar} className="bg-white border rounded-lg p-4 mb-6 grid grid-cols-2 md:grid-cols-4 gap-3 items-end shadow-sm">
+          <form onSubmit={agregar} className="bg-white border border-[#ece8e5] rounded-2xl p-4 mb-6 grid grid-cols-2 md:grid-cols-4 gap-3 items-end shadow-sm">
             <div>
               <label className="block text-xs text-gray-500 mb-1">Nombre</label>
-              <input value={nombre} onChange={e => setNombre(e.target.value)} required className="border rounded px-3 py-1.5 text-sm w-full" placeholder="Esmalte gel rojo" />
+              <input value={nombre} onChange={e => setNombre(e.target.value)} required className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-rose-300 outline-none w-full" placeholder="Esmalte gel rojo" />
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1">Tipo</label>
-              <select value={tipo} onChange={e => setTipo(e.target.value)} className="border rounded px-3 py-1.5 text-sm w-full">
+              <select value={tipo} onChange={e => setTipo(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-rose-300 outline-none w-full">
                 <option>Uñas</option>
                 <option>Cabello</option>
                 <option>Piel</option>
@@ -99,36 +99,36 @@ export default function ProductosPage() {
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1">Marca</label>
-              <input value={marca} onChange={e => setMarca(e.target.value)} className="border rounded px-3 py-1.5 text-sm w-full" placeholder="Gelish" />
+              <input value={marca} onChange={e => setMarca(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-rose-300 outline-none w-full" placeholder="Gelish" />
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1">Precio $</label>
-              <input value={precio} onChange={e => setPrecio(e.target.value)} required type="number" step="0.01" className="border rounded px-3 py-1.5 text-sm w-full" placeholder="18" />
+              <input value={precio} onChange={e => setPrecio(e.target.value)} required type="number" step="0.01" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-rose-300 outline-none w-full" placeholder="18" />
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1">Costo $</label>
-              <input value={costo} onChange={e => setCosto(e.target.value)} type="number" step="0.01" className="border rounded px-3 py-1.5 text-sm w-full" placeholder="9" />
+              <input value={costo} onChange={e => setCosto(e.target.value)} type="number" step="0.01" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-rose-300 outline-none w-full" placeholder="9" />
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1">Stock</label>
-              <input value={stock} onChange={e => setStock(e.target.value)} type="number" className="border rounded px-3 py-1.5 text-sm w-full" />
+              <input value={stock} onChange={e => setStock(e.target.value)} type="number" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-rose-300 outline-none w-full" />
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1">SKU</label>
-              <input value={sku} onChange={e => setSku(e.target.value)} className="border rounded px-3 py-1.5 text-sm w-full" placeholder="GEL-RED-01" />
+              <input value={sku} onChange={e => setSku(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-rose-300 outline-none w-full" placeholder="GEL-RED-01" />
             </div>
             <div className="col-span-2 md:col-span-4">
               <label className="block text-xs text-gray-500 mb-1">Descripción</label>
-              <input value={descripcion} onChange={e => setDescripcion(e.target.value)} className="border rounded px-3 py-1.5 text-sm w-full" placeholder="Esmalte en gel rojo brillante 15ml" />
+              <input value={descripcion} onChange={e => setDescripcion(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-rose-300 outline-none w-full" placeholder="Esmalte en gel rojo brillante 15ml" />
             </div>
-            <button className="col-span-2 md:col-span-4 bg-rose-600 hover:bg-rose-700 text-white px-4 py-1.5 rounded text-sm">Agregar producto</button>
+            <button className="col-span-2 md:col-span-4 bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">Agregar producto</button>
           </form>
 
           {/* Lista de productos */}
           {loading ? <p className="text-gray-400">Cargando…</p> : (
             <div className="space-y-2">
               {productos.map(p => (
-                <div key={p.id} className="bg-white border rounded-lg p-3 flex items-center justify-between shadow-sm">
+                <div key={p.id} className="bg-white border border-[#ece8e5] rounded-2xl p-3 flex items-center justify-between shadow-sm">
                   <div className="flex items-center gap-3">
                     <span className={`w-2 h-2 rounded-full ${p.is_active ? 'bg-green-500' : 'bg-gray-300'}`} />
                     <div>

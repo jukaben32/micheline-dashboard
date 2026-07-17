@@ -2,8 +2,8 @@
 
 /* Variables base del tema (dashboard siempre en modo claro) */
 :root {
-  --background: #f8fafc; /* gris muy claro de fondo general */
-  --foreground: #1f2937; /* gris oscuro para el texto */
+  --background: #f4f2f0; /* gris cálido claro estilo Nixtio */
+  --foreground: #1a1614; /* casi negro cálido para el texto */
 }
 
 @theme inline {
@@ -51,4 +51,31 @@ html {
 }
 .animar-aparecer {
   animation: aparecer 0.4s ease-out both;
+}
+
+/* ===== Estilo "Nixtio": tarjetas muy redondeadas y aireadas ===== */
+/* Tarjeta base blanca con esquinas grandes */
+.card {
+  background: #ffffff;
+  border-radius: 1.5rem; /* rounded-3xl */
+  padding: 1.5rem;
+  border: 1px solid #ece8e5;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.card:hover {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+/* Tarjeta oscura de acento (KPI destacado) */
+.card-dark {
+  background: #1a1614;
+  color: #ffffff;
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+}
+/* Número KPI grande estilo dashboard moderno */
+.kpi {
+  font-size: 2.25rem;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }

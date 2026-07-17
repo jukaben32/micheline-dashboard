@@ -225,16 +225,15 @@ function ResumenCard({
     amber: 'bg-amber-50 text-amber-600',
   }
   return (
-    <div className="animar-aparecer bg-white border border-gray-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center gap-4">
-      {/* Círculo con el icono */}
+    <div className="animar-aparecer bg-white border border-[#ece8e5] rounded-3xl p-5 hover:shadow-[0_10px_30px_rgba(0,0,0,0.06)] transition-shadow flex items-center gap-4">
       {icono && (
-        <div className={`h-11 w-11 rounded-full grid place-items-center text-xl ${acentos[acento]}`}>
+        <div className={`h-12 w-12 rounded-2xl grid place-items-center text-xl ${acentos[acento]}`}>
           {icono}
         </div>
       )}
-      <div>
-        <div className="text-xs text-gray-400">{label}</div>
-        <div className="text-2xl font-bold text-gray-800">{valor}</div>
+      <div className="min-w-0">
+        <div className="text-xs text-gray-500">{label}</div>
+        <div className="text-2xl font-bold text-gray-900 truncate tracking-tight">{valor}</div>
       </div>
     </div>
   )
@@ -243,7 +242,7 @@ function ResumenCard({
 // Tarjeta que envuelve cada gráfico
 function GraficaCard({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
-    <div className="animar-aparecer bg-white border border-gray-100 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center">
+    <div className="animar-aparecer bg-white border border-[#ece8e5] rounded-3xl p-6 hover:shadow-[0_10px_30px_rgba(0,0,0,0.06)] transition-shadow flex flex-col items-center">
       <h2 className="text-sm font-semibold text-gray-700 mb-3 self-start">{titulo}</h2>
       {children}
     </div>

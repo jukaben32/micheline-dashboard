@@ -52,7 +52,7 @@ export default function ServiciosPage() {
       <h2 className="text-lg font-semibold text-gray-800 mb-4">Catálogo de servicios</h2>
 
       {/* Formulario para agregar servicio */}
-      <form onSubmit={agregar} className="animar-aparecer bg-white border border-gray-100 rounded-xl p-4 mb-6 flex flex-wrap gap-3 items-end shadow-sm">
+      <form onSubmit={agregar} className="animar-aparecer bg-white border border-[#ece8e5] rounded-2xl p-4 mb-6 flex flex-wrap gap-3 items-end shadow-sm">
         <div>
           <label className="block text-xs text-gray-500 mb-1">Nombre</label>
           <input value={nombre} onChange={e => setNombre(e.target.value)} required className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-48 focus:border-rose-300 outline-none" placeholder="Manicura clásica" />
@@ -71,7 +71,7 @@ export default function ServiciosPage() {
       {loading ? <p className="text-gray-400">Cargando…</p> : (
         <div className="space-y-2">
           {servicios.map(s => (
-            <div key={s.id} className="animar-aparecer bg-white border border-gray-100 rounded-xl p-3 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
+            <div key={s.id} className="animar-aparecer bg-white border border-[#ece8e5] rounded-2xl p-3 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center gap-3">
                 <span className={`w-2 h-2 rounded-full ${s.is_active ? 'bg-green-500' : 'bg-gray-300'}`} />
                 <span className="font-medium text-gray-800">{s.name}</span>
