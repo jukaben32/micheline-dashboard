@@ -75,7 +75,7 @@ export default function ProductosPage() {
 
   return (
     <div className="min-h-screen">
-      <header className="bg-rose-700 text-white px-4 py-3 font-bold">💅 Micheline · Productos (Inventario)</header>
+      <header className="bg-gradient-to-r from-rose-700 to-rose-500 text-white px-4 py-3 font-bold shadow-sm">💅 Micheline · Productos (Inventario)</header>
       <div className="flex">
         <Sidebar />
         <main className="flex-1 p-6">

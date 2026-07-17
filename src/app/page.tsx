@@ -52,7 +52,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       {/* Barra superior */}
-      <header className="bg-rose-700 text-white px-4 py-3 flex items-center justify-between">
+      <header className="bg-gradient-to-r from-rose-700 to-rose-500 text-white px-4 py-3 flex items-center justify-between shadow-sm">
         <div className="font-bold">💅 Micheline · Panel</div>
         <div className="flex items-center gap-3 text-sm">
           <span className="opacity-90">{userEmail}</span>

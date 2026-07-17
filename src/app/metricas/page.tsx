@@ -148,21 +148,21 @@ export default function MetricasPage() {
 
   return (
     <div className="min-h-screen">
-      <header className="bg-rose-700 text-white px-4 py-3 font-bold">💅 Micheline · Métricas</header>
+      <header className="bg-gradient-to-r from-rose-700 to-rose-500 text-white px-4 py-3 font-bold shadow-sm">💅 Micheline · Métricas</header>
       <div className="flex">
         <Sidebar />
         <main className="flex-1 p-6">
           <h1 className="text-xl font-semibold text-gray-800 mb-4">Panel de métricas</h1>
 
           {/* Tarjetas resumen */}
-          <div className="grid grid-cols-3 gap-4 mb-8">
-            <ResumenCard label="Citas (totales)" valor={loading ? '…' : String(totalCitas)} />
-            <ResumenCard label="Clientes únicos" valor={loading ? '…' : String(clientesUnicos)} />
-            <ResumenCard label="Ingreso estimado" valor={loading ? '…' : `$${ingresoEstimado.toFixed(2)}`} />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <ResumenCard label="Citas (totales)" valor={loading ? '…' : String(totalCitas)} icono="📅" acento="rose" />
+            <ResumenCard label="Clientes únicos" valor={loading ? '…' : String(clientesUnicos)} icono="👥" acento="violet" />
+            <ResumenCard label="Ingreso estimado" valor={loading ? '…' : `$${ingresoEstimado.toFixed(2)}`} icono="💰" acento="amber" />
           </div>
 
           {loading ? <p className="text-gray-400">Cargando métricas…</p> : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Donut 1 */}
               <GraficaCard titulo="Servicios más consumidos">
                 <Donut data={serviciosTop} centerValue={String(serviciosTop.reduce((s, d) => s + d.value, 0))} centerLabel="servicios" />
@@ -212,12 +212,36 @@ export default function MetricasPage() {
   )
 }
 
-// Tarjeta resumen compacta
-function ResumenCard({ label, valor }: { label: string; valor: string }) {
+// Tarjeta resumen compacta con icono y color de acento
+function ResumenCard({
+  label,
+  valor,
+  icono,
+  acento = 'rose',
+}: {
+  label: string
+  valor: string
+  icono?: string
+  acento?: 'rose' | 'violet' | 'amber'
+}) {
+  // Mapa de colores según el acento elegido
+  const acentos: Record<string, string> = {
+    rose: 'bg-rose-50 text-rose-600',
+    violet: 'bg-violet-50 text-violet-600',
+    amber: 'bg-amber-50 text-amber-600',
+  }
   return (
-    <div className="bg-white border rounded-lg p-4 shadow-sm">
-      <div className="text-xs text-gray-400">{label}</div>
-      <div className="text-2xl font-bold text-gray-800">{valor}</div>
+    <div className="animar-aparecer bg-white border border-gray-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center gap-4">
+      {/* Círculo con el icono */}
+      {icono && (
+        <div className={`h-11 w-11 rounded-full grid place-items-center text-xl ${acentos[acento]}`}>
+          {icono}
+        </div>
+      )}
+      <div>
+        <div className="text-xs text-gray-400">{label}</div>
+        <div className="text-2xl font-bold text-gray-800">{valor}</div>
+      </div>
     </div>
   )
 }
@@ -225,7 +249,7 @@ function ResumenCard({ label, valor }: { label: string; valor: string }) {
 // Tarjeta que envuelve cada gráfico
 function GraficaCard({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white border rounded-lg p-5 shadow-sm flex flex-col items-center">
+    <div className="animar-aparecer bg-white border border-gray-100 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center">
       <h2 className="text-sm font-semibold text-gray-700 mb-3 self-start">{titulo}</h2>
       {children}
     </div>

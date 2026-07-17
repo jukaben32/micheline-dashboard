@@ -65,7 +65,7 @@ export default function MarcasPage() {
 
   return (
     <div className="min-h-screen">
-      <header className="bg-rose-700 text-white px-4 py-3 font-bold">💅 Micheline · Marcas / Líneas</header>
+      <header className="bg-gradient-to-r from-rose-700 to-rose-500 text-white px-4 py-3 font-bold shadow-sm">💅 Micheline · Marcas / Líneas</header>
       <div className="flex">
         <Sidebar />
         <main className="flex-1 p-6 space-y-8">
