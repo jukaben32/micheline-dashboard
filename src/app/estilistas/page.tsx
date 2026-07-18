@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import AppShell from '@/components/AppShell'
+import { useActiveBusiness } from '@/hooks/useBusiness'
 
 // Tipo de datos de un estilista (incluye la foto y contacto interno)
 type Estilista = {
@@ -21,6 +22,7 @@ const BUCKET = 'stylists'
 // Página de gestión de estilistas
 export default function EstilistasPage() {
   const supabase = createClient()
+  const { activeId } = useActiveBusiness()
   const [estilistas, setEstilistas] = useState<Estilista[]>([])
   const [nombre, setNombre] = useState('')
   const [especialidad, setEspecialidad] = useState('')
@@ -59,10 +61,10 @@ export default function EstilistasPage() {
     if (guardando) return
     setGuardando(true)
     try {
-      // 1) Insertamos primero para obtener el id
+      // 1) Insertamos primero para obtener el id (business_id: del negocio activo si hay uno)
       const { data, error } = await supabase
         .from('stylists')
-        .insert({ full_name: nombre, specialty: especialidad || null, email: email || null, whatsapp: whatsapp || null, is_active: true })
+        .insert({ full_name: nombre, specialty: especialidad || null, email: email || null, whatsapp: whatsapp || null, is_active: true, business_id: activeId ?? undefined })
         .select('id')
         .single()
       if (error) throw error

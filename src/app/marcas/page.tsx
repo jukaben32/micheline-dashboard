@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import AppShell from '@/components/AppShell'
+import { useActiveBusiness } from '@/hooks/useBusiness'
 
 type Marca = { id: string; name: string; is_active: boolean }
 type Linea = {
@@ -18,6 +19,7 @@ type Linea = {
 // Gestion de marcas y lineas de producto por servicio
 export default function MarcasPage() {
   const supabase = createClient()
+  const { activeId } = useActiveBusiness()
   const [marcas, setMarcas] = useState<Marca[]>([])
   const [lineas, setLineas] = useState<Linea[]>([])
   const [servicios, setServicios] = useState<{ id: string; name: string }[]>([])
@@ -42,7 +44,7 @@ export default function MarcasPage() {
 
   async function agregarMarca(e: React.FormEvent) {
     e.preventDefault()
-    await supabase.from('brands').insert({ name: nombreMarca, is_active: true })
+    await supabase.from('brands').insert({ name: nombreMarca, is_active: true, business_id: activeId ?? undefined })
     setNombreMarca(''); cargar()
   }
 
@@ -51,7 +53,7 @@ export default function MarcasPage() {
     if (!selServicio || !selMarca) return
     await supabase.from('service_product_lines').insert({
       service_id: selServicio, brand_id: selMarca,
-      price_adjustment: parseFloat(ajuste), is_default: false,
+      price_adjustment: parseFloat(ajuste), is_default: false, business_id: activeId ?? undefined,
     })
     setSelServicio(''); setSelMarca(''); setAjuste('10'); cargar()
   }

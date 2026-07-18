@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import AppShell from '@/components/AppShell'
+import { useActiveBusiness } from '@/hooks/useBusiness'
 
 // Cliente base (tabla clients ya existe en la BD)
 type Cliente = {
@@ -39,6 +40,7 @@ const CAT_COLOR: Record<string, string> = {
 
 export default function ClientesPage() {
   const supabase = createClient()
+  const { activeId } = useActiveBusiness()
   const [clientes, setClientes] = useState<ClienteView[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -85,6 +87,7 @@ export default function ClientesPage() {
       email: email || null,
       birth_date: cumple || null,
       category: categoria,
+      business_id: activeId ?? undefined,
     })
     setNombre(''); setTelefono(''); setEmail(''); setCategoria('nuevo'); setCumple('')
     cargar()

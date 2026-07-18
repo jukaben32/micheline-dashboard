@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import AppShell from '@/components/AppShell'
+import { useActiveBusiness } from '@/hooks/useBusiness'
 
 // Tipo de un producto del inventario
 type Producto = {
@@ -21,6 +22,7 @@ type Producto = {
 // Página de inventario de productos
 export default function ProductosPage() {
   const supabase = createClient()
+  const { activeId } = useActiveBusiness()
   const [productos, setProductos] = useState<Producto[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -50,6 +52,7 @@ export default function ProductosPage() {
       brand: marca || null,
       price: parseFloat(precio) || 0,
       cost: costo ? parseFloat(costo) : null,
+      business_id: activeId ?? undefined,
       stock: parseInt(stock) || 0,
       sku: sku || null,
       is_active: true,

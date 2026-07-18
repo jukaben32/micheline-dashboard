@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import AppShell from '@/components/AppShell'
+import { useActiveBusiness } from '@/hooks/useBusiness'
 
 type Servicio = {
   id: string
@@ -15,6 +16,7 @@ type Servicio = {
 // Gestion de servicios
 export default function ServiciosPage() {
   const supabase = createClient()
+  const { activeId } = useActiveBusiness()
   const [servicios, setServicios] = useState<Servicio[]>([])
   const [nombre, setNombre] = useState('')
   const [precio, setPrecio] = useState('')
@@ -31,7 +33,7 @@ export default function ServiciosPage() {
   async function agregar(e: React.FormEvent) {
     e.preventDefault()
     await supabase.from('services').insert({
-      name: nombre, price: parseFloat(precio), duration_min: parseInt(duracion), is_active: true,
+      name: nombre, price: parseFloat(precio), duration_min: parseInt(duracion), is_active: true, business_id: activeId ?? undefined,
     })
     setNombre(''); setPrecio(''); setDuracion('30')
     cargar()

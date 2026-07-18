@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Sidebar from '@/components/Sidebar'
+import BusinessSwitcher from '@/components/BusinessSwitcher'
 
 // AppShell: el "marco" común de todo el dashboard.
 // Incluye la barra lateral fija y la barra superior con título, email y salir.
@@ -50,6 +51,7 @@ export default function AppShell({
           </div>
 
           <div className="flex items-center gap-3">
+            <BusinessSwitcher />
             <span className="hidden sm:block text-sm text-gray-400">{userEmail}</span>
             {/* Avatar con la inicial del email */}
             <div className="h-8 w-8 rounded-full bg-rose-100 text-rose-700 grid place-items-center text-sm font-semibold">
