@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useProfile } from '@/hooks/useBusiness'
 
 // Menú lateral fijo del dashboard.
 // En escritorio siempre visible; en móvil se abre/cierra con "abierto".
@@ -24,6 +25,8 @@ export default function Sidebar({
   onCerrar?: () => void
 }) {
   const pathname = usePathname()
+  const { role, loading } = useProfile()
+  const esSuper = !loading && role === 'super_admin'
 
   return (
     <>
@@ -76,6 +79,29 @@ export default function Sidebar({
               )
             })}
           </div>
+
+          {/* Solo el super admin puede dar de alta clientes */}
+          {esSuper && (
+            <>
+              <p className="px-2 mt-4 mb-2 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                Super Admin
+              </p>
+              <div className="space-y-1">
+                <Link
+                  href="/alta-cliente"
+                  onClick={onCerrar}
+                  className={`relative flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-150 ${
+                    pathname === '/alta-cliente'
+                      ? 'bg-rose-50 text-rose-700 font-medium'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <span className="text-base leading-none">➕</span>
+                  <span>Alta de cliente</span>
+                </Link>
+              </div>
+            </>
+          )}
         </nav>
 
         {/* Pie */}
