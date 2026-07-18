@@ -1,24 +1,33 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import AppShell from '@/components/AppShell'
 
+// Tipo de datos de un estilista (incluye la foto)
 type Estilista = {
   id: string
   full_name: string
   specialty: string | null
+  photo_url: string | null
   is_active: boolean
 }
 
-// Gestion de estilistas
+// Bucket de Supabase Storage donde guardamos las fotos
+const BUCKET = 'stylists'
+
+// Página de gestión de estilistas
 export default function EstilistasPage() {
   const supabase = createClient()
   const [estilistas, setEstilistas] = useState<Estilista[]>([])
   const [nombre, setNombre] = useState('')
   const [especialidad, setEspecialidad] = useState('')
+  const [foto, setFoto] = useState<File | null>(null) // archivo seleccionado
   const [loading, setLoading] = useState(true)
+  const [guardando, setGuardando] = useState(false) // evita doble click mientras sube
+  const inputFoto = useRef<HTMLInputElement>(null)
 
+  // Carga la lista de estilistas al abrir la página
   async function cargar() {
     const { data } = await supabase.from('stylists').select('*').order('full_name')
     setEstilistas((data as Estilista[]) || [])
@@ -26,19 +35,68 @@ export default function EstilistasPage() {
   }
   useEffect(() => { cargar() }, [])
 
-  async function agregar(e: React.FormEvent) {
-    e.preventDefault()
-    await supabase.from('stylists').insert({ full_name: nombre, specialty: especialidad || null, is_active: true })
-    setNombre(''); setEspecialidad('')
-    cargar()
+  // Sube la foto al bucket y devuelve la URL pública (o null si no hay foto)
+  async function subirFoto(archivo: File, idEstilista: string): Promise<string | null> {
+    // Extension del archivo (png, jpg, webp...)
+    const ext = archivo.name.split('.').pop()?.toLowerCase() || 'jpg'
+    const ruta = `${idEstilista}.${ext}` // una foto por estilista, misma ruta = la reemplaza
+    const { error } = await supabase.storage
+      .from(BUCKET)
+      .upload(ruta, archivo, { upsert: true, contentType: archivo.type })
+    if (error) throw error
+    // Obtenemos la URL pública para mostrarla en la web
+    const { data } = supabase.storage.from(BUCKET).getPublicUrl(ruta)
+    return data.publicUrl
   }
 
+  // Agrega un estilista (con su foto si se seleccionó)
+  async function agregar(e: React.FormEvent) {
+    e.preventDefault()
+    if (guardando) return
+    setGuardando(true)
+    try {
+      // 1) Insertamos primero para obtener el id
+      const { data, error } = await supabase
+        .from('stylists')
+        .insert({ full_name: nombre, specialty: especialidad || null, is_active: true })
+        .select('id')
+        .single()
+      if (error) throw error
+      const id = (data as { id: string }).id
+
+      // 2) Si hay foto, la subimos y guardamos la URL
+      if (foto) {
+        const url = await subirFoto(foto, id)
+        if (url) {
+          await supabase.from('stylists').update({ photo_url: url }).eq('id', id)
+        }
+      }
+
+      // 3) Limpiamos el formulario
+      setNombre(''); setEspecialidad(''); setFoto(null)
+      if (inputFoto.current) inputFoto.current.value = ''
+      cargar()
+    } catch (err) {
+      alert('No se pudo guardar el estilista: ' + (err as Error).message)
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  // Activa/desactiva un estilista
   async function toggle(id: string, activo: boolean) {
     await supabase.from('stylists').update({ is_active: !activo }).eq('id', id)
     cargar()
   }
 
-  async function borrar(id: string) {
+  // Borra un estilista y su foto del bucket
+  async function borrar(id: string, fotoUrl: string | null) {
+    if (!confirm('¿Borrar este estilista?')) return
+    // Borramos la foto del storage si existe
+    if (fotoUrl) {
+      const ruta = fotoUrl.split('/').pop() // nombre del archivo al final de la URL
+      if (ruta) await supabase.storage.from(BUCKET).remove([ruta])
+    }
     await supabase.from('stylists').delete().eq('id', id)
     cargar()
   }
@@ -47,6 +105,7 @@ export default function EstilistasPage() {
     <AppShell titulo="Estilistas">
       <h2 className="text-lg font-semibold text-gray-800 mb-4">Equipo de estilistas</h2>
 
+      {/* Formulario para agregar estilista (con foto) */}
       <form onSubmit={agregar} className="animar-aparecer bg-white border border-[#ece8e5] rounded-2xl p-4 mb-6 flex flex-wrap gap-3 items-end shadow-sm">
         <div>
           <label className="block text-xs text-gray-500 mb-1">Nombre</label>
@@ -56,7 +115,13 @@ export default function EstilistasPage() {
           <label className="block text-xs text-gray-500 mb-1">Especialidad</label>
           <input value={especialidad} onChange={e => setEspecialidad(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-48 focus:border-rose-300 outline-none" placeholder="Manicura & Arte" />
         </div>
-        <button className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">Agregar</button>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">Foto</label>
+          <input ref={inputFoto} type="file" accept="image/*" onChange={e => setFoto(e.target.files?.[0] || null)} className="block text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-rose-50 file:text-rose-600 file:text-sm file:cursor-pointer" />
+        </div>
+        <button disabled={guardando} className="bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+          {guardando ? 'Guardando…' : 'Agregar'}
+        </button>
       </form>
 
       {loading ? <p className="text-gray-400">Cargando…</p> : (
@@ -64,10 +129,14 @@ export default function EstilistasPage() {
           {estilistas.map(e => (
             <div key={e.id} className="animar-aparecer bg-white border border-[#ece8e5] rounded-2xl p-3 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center gap-3">
-                {/* Avatar con la inicial */}
-                <div className="h-9 w-9 rounded-full bg-rose-100 text-rose-700 grid place-items-center text-sm font-semibold">
-                  {e.full_name ? e.full_name[0].toUpperCase() : '·'}
-                </div>
+                {/* Foto del estilista (o inicial si no tiene) */}
+                {e.photo_url ? (
+                  <img src={e.photo_url} alt={e.full_name} className="h-9 w-9 rounded-full object-cover" />
+                ) : (
+                  <div className="h-9 w-9 rounded-full bg-rose-100 text-rose-700 grid place-items-center text-sm font-semibold">
+                    {e.full_name ? e.full_name[0].toUpperCase() : '·'}
+                  </div>
+                )}
                 <div>
                   <div className="font-medium text-gray-800 flex items-center gap-2">
                     {e.full_name}
@@ -80,7 +149,7 @@ export default function EstilistasPage() {
                 <button onClick={() => toggle(e.id, e.is_active)} className="text-xs px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">
                   {e.is_active ? 'Desactivar' : 'Activar'}
                 </button>
-                <button onClick={() => borrar(e.id)} className="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">Borrar</button>
+                <button onClick={() => borrar(e.id, e.photo_url)} className="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">Borrar</button>
               </div>
             </div>
           ))}
