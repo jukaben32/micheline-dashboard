@@ -4,12 +4,14 @@ import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import AppShell from '@/components/AppShell'
 
-// Tipo de datos de un estilista (incluye la foto)
+// Tipo de datos de un estilista (incluye la foto y contacto interno)
 type Estilista = {
   id: string
   full_name: string
   specialty: string | null
   photo_url: string | null
+  email: string | null
+  whatsapp: string | null
   is_active: boolean
 }
 
@@ -22,6 +24,8 @@ export default function EstilistasPage() {
   const [estilistas, setEstilistas] = useState<Estilista[]>([])
   const [nombre, setNombre] = useState('')
   const [especialidad, setEspecialidad] = useState('')
+  const [email, setEmail] = useState('')
+  const [whatsapp, setWhatsapp] = useState('')
   const [foto, setFoto] = useState<File | null>(null) // archivo seleccionado
   const [loading, setLoading] = useState(true)
   const [guardando, setGuardando] = useState(false) // evita doble click mientras sube
@@ -58,7 +62,7 @@ export default function EstilistasPage() {
       // 1) Insertamos primero para obtener el id
       const { data, error } = await supabase
         .from('stylists')
-        .insert({ full_name: nombre, specialty: especialidad || null, is_active: true })
+        .insert({ full_name: nombre, specialty: especialidad || null, email: email || null, whatsapp: whatsapp || null, is_active: true })
         .select('id')
         .single()
       if (error) throw error
@@ -73,7 +77,7 @@ export default function EstilistasPage() {
       }
 
       // 3) Limpiamos el formulario
-      setNombre(''); setEspecialidad(''); setFoto(null)
+      setNombre(''); setEspecialidad(''); setEmail(''); setWhatsapp(''); setFoto(null)
       if (inputFoto.current) inputFoto.current.value = ''
       cargar()
     } catch (err) {
@@ -116,6 +120,14 @@ export default function EstilistasPage() {
           <input value={especialidad} onChange={e => setEspecialidad(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-48 focus:border-rose-300 outline-none" placeholder="Manicura & Arte" />
         </div>
         <div>
+          <label className="block text-xs text-gray-500 mb-1">Email</label>
+          <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-48 focus:border-rose-300 outline-none" placeholder="nombre@email.com" />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">WhatsApp</label>
+          <input value={whatsapp} onChange={e => setWhatsapp(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-48 focus:border-rose-300 outline-none" placeholder="18096277471" />
+        </div>
+        <div>
           <label className="block text-xs text-gray-500 mb-1">Foto</label>
           <input ref={inputFoto} type="file" accept="image/*" onChange={e => setFoto(e.target.files?.[0] || null)} className="block text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-rose-50 file:text-rose-600 file:text-sm file:cursor-pointer" />
         </div>
@@ -143,6 +155,10 @@ export default function EstilistasPage() {
                     <span className={`w-2 h-2 rounded-full ${e.is_active ? 'bg-green-500' : 'bg-gray-300'}`} />
                   </div>
                   <div className="text-sm text-gray-500">{e.specialty || '—'}</div>
+                  <div className="text-xs text-gray-400 mt-0.5">
+                    {e.email && <span className="mr-3">✉️ {e.email}</span>}
+                    {e.whatsapp && <span>📱 {e.whatsapp}</span>}
+                  </div>
                 </div>
               </div>
               <div className="flex gap-2">
