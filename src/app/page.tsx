@@ -26,7 +26,7 @@ const ESTADO_COLOR: Record<string, string> = {
   reprogramada: 'bg-sky-100 text-sky-700',
   completada: 'bg-emerald-100 text-emerald-700',
   cancelada: 'bg-red-100 text-red-700',
-  pendiente: 'bg-amber-100 text-amber-700',
+  pendiente_pago: 'bg-amber-100 text-amber-700', // reserva hecha, falta pagar
 }
 
 // Pagina principal: resumen + próximas citas + citas del día
@@ -79,6 +79,16 @@ export default function HomePage() {
   const activas = citas.filter(c => c.status !== 'cancelada').length
   const canceladas = citas.filter(c => c.status === 'cancelada').length
   const siguiente = proximas[0]
+
+  // Confirma manualmente el pago de una cita pendiente (transferencia verificada por el admin)
+  async function confirmarPago(id: string) {
+    const { error } = await supabase
+      .from('appointments')
+      .update({ status: 'confirmada', paid_at: new Date().toISOString() })
+      .eq('id', id)
+    if (error) { setError(error.message); return }
+    cargarDia() // refresca la lista
+  }
 
   return (
     <AppShell titulo="Resumen general">
@@ -136,9 +146,17 @@ export default function HomePage() {
                       {c.services?.[0]?.name || 'Servicio'} · {c.stylists?.[0]?.full_name || 'Estilista'}
                     </div>
                   </div>
-                  <span className={`text-xs px-2.5 py-1 rounded-full shrink-0 ${ESTADO_COLOR[c.status || 'pendiente'] || ESTADO_COLOR.pendiente}`}>
-                    {c.status || 'pendiente'}
-                  </span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {c.status === 'pendiente_pago' && (
+                      <button
+                        onClick={() => confirmarPago(c.id)}
+                        className="text-xs px-2.5 py-1 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                      >Confirmar pago</button>
+                    )}
+                    <span className={`text-xs px-2.5 py-1 rounded-full ${ESTADO_COLOR[c.status || 'pendiente_pago'] || ESTADO_COLOR.pendiente_pago}`}>
+                      {c.status || 'pendiente_pago'}
+                    </span>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -174,9 +192,17 @@ export default function HomePage() {
                       {c.services?.[0]?.name || 'Servicio'} · {c.stylists?.[0]?.full_name || 'Estilista'}
                     </div>
                   </div>
-                  <span className={`text-xs px-2.5 py-1 rounded-full shrink-0 ${ESTADO_COLOR[c.status || 'pendiente'] || ESTADO_COLOR.pendiente}`}>
-                    {c.status || 'pendiente'}
-                  </span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {c.status === 'pendiente_pago' && (
+                      <button
+                        onClick={() => confirmarPago(c.id)}
+                        className="text-xs px-2.5 py-1 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                      >Confirmar pago</button>
+                    )}
+                    <span className={`text-xs px-2.5 py-1 rounded-full ${ESTADO_COLOR[c.status || 'pendiente_pago'] || ESTADO_COLOR.pendiente_pago}`}>
+                      {c.status || 'pendiente_pago'}
+                    </span>
+                  </div>
                 </li>
               ))}
             </ul>
