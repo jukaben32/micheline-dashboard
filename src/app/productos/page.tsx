@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import AppShell from '@/components/AppShell'
 import { useActiveBusiness } from '@/hooks/useBusiness'
+import Aviso from '@/components/Aviso'
 
 // Tipo de un producto del inventario
 type Producto = {
@@ -25,6 +26,7 @@ export default function ProductosPage() {
   const { activeId } = useActiveBusiness()
   const [productos, setProductos] = useState<Producto[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null) // aviso si falla la carga
 
   // Campos del formulario
   const [nombre, setNombre] = useState('')
@@ -37,7 +39,9 @@ export default function ProductosPage() {
   const [sku, setSku] = useState('')
 
   async function cargar() {
-    const { data } = await supabase.from('products').select('*').order('name')
+    const { data, error: err } = await supabase.from('products').select('*').order('name')
+    // Si la consulta falla, lo avisamos en vez de mostrar lista vacía
+    if (err) { setError(err.message); setLoading(false); return }
     setProductos((data as Producto[]) || [])
     setLoading(false)
   }
@@ -78,6 +82,9 @@ export default function ProductosPage() {
 
   return (
     <AppShell titulo="Productos (Inventario)">
+      {/* Aviso si la carga falló (antes se mostraba lista vacía en silencio) */}
+      <Aviso mensaje={error} />
+
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-gray-800">Inventario de productos</h2>
         <span className="text-sm text-gray-500">Valor stock: ${valorInventario.toFixed(2)}</span>

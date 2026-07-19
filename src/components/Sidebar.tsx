@@ -48,7 +48,8 @@ export default function Sidebar({
         <div className="h-14 flex items-center gap-2 px-5 border-b border-gray-100">
           <span className="text-xl">💅</span>
           <span className="font-bold text-gray-800">Micheline</span>
-          <span className="ml-auto text-[10px] uppercase tracking-wider text-rose-400 font-semibold">Panel</span>
+          <span className="ml-auto text-[10px] uppercase tracking-wider font-semibold"
+            style={{ color: '#B08D57' }}>Panel</span>
         </div>
 
         {/* Navegación */}
@@ -71,7 +72,8 @@ export default function Sidebar({
                   }`}
                 >
                   {activo && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-rose-600" />
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full"
+                      style={{ background: 'linear-gradient(180deg, #D8A7B1, #B08D57)' }} />
                   )}
                   <span className="text-base leading-none">{it.icon}</span>
                   <span>{it.label}</span>

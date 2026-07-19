@@ -23,6 +23,12 @@ export default function AppShell({
     supabase.auth.getUser().then(({ data }) => setUserEmail(data.user?.email || ''))
   }, [])
 
+  // Cada página pasa su título a AppShell; lo usamos también para la
+  // pestaña del navegador (antes todas compartían el mismo título genérico).
+  useEffect(() => {
+    if (titulo) document.title = `${titulo} · Micheline`
+  }, [titulo])
+
   async function logout() {
     const supabase = createClient()
     await supabase.auth.signOut()

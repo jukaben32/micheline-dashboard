@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import AppShell from '@/components/AppShell'
 import { useActiveBusiness } from '@/hooks/useBusiness'
@@ -145,7 +146,7 @@ export default function EstilistasPage() {
               <div className="flex items-center gap-3">
                 {/* Foto del estilista (o inicial si no tiene) */}
                 {e.photo_url ? (
-                  <img src={e.photo_url} alt={e.full_name} className="h-9 w-9 rounded-full object-cover" />
+                  <Image src={e.photo_url} alt={e.full_name} width={36} height={36} className="h-9 w-9 rounded-full object-cover" />
                 ) : (
                   <div className="h-9 w-9 rounded-full bg-rose-100 text-rose-700 grid place-items-center text-sm font-semibold">
                     {e.full_name ? e.full_name[0].toUpperCase() : '·'}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import AppShell from '@/components/AppShell'
+import Aviso from '@/components/Aviso'
 
 type Cita = {
   id: string
@@ -15,10 +16,16 @@ type Cita = {
   stylists?: { full_name: string }[] | null
 }
 
-// Colores de estado tipo píldora
+// Colores de estado tipo píldora.
+// IMPORTANTE: la tabla appointments guarda los estados en ESPAÑOL
+// ('confirmada', 'cancelada', 'completada', 'reprogramada'). Los valores
+// en inglés ('confirmed'/'cancelled') NO existen en la BD, por eso antes
+// ninguna píldora matcheaba y caían al color ámbar por defecto.
 const ESTADO_COLOR: Record<string, string> = {
-  confirmed: 'bg-green-100 text-green-700',
-  cancelled: 'bg-red-100 text-red-700',
+  confirmada: 'bg-green-100 text-green-700',
+  reprogramada: 'bg-sky-100 text-sky-700',
+  completada: 'bg-emerald-100 text-emerald-700',
+  cancelada: 'bg-red-100 text-red-700',
   pendiente: 'bg-amber-100 text-amber-700',
 }
 
@@ -29,42 +36,55 @@ export default function HomePage() {
   const [proximas, setProximas] = useState<Cita[]>([])
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null) // aviso si falla la carga
 
   async function cargarDia() {
     setLoading(true)
+    setError(null)
     const desde = `${fecha}T00:00:00-04:00`
     const hasta = `${fecha}T23:59:59-04:00`
-    const { data } = await supabase
+    const { data, error: err } = await supabase
       .from('appointments')
       .select('id, start_at, client_name, service_id, stylist_id, status, services(name), stylists(full_name)')
       .gte('start_at', desde)
       .lte('start_at', hasta)
       .order('start_at')
+    // Si la consulta falla (red, permisos RLS…), lo avisamos en vez de ocultarlo
+    if (err) {
+      setError(err.message)
+      setLoading(false)
+      return
+    }
     setCitas((data as unknown as Cita[]) || [])
     setLoading(false)
   }
 
   async function cargarProximas() {
     const ahora = new Date().toISOString()
-    const { data } = await supabase
+    const { data, error: err } = await supabase
       .from('appointments')
       .select('id, start_at, client_name, service_id, stylist_id, status, services(name), stylists(full_name)')
       .gte('start_at', ahora)
-      .neq('status', 'cancelled')
+      .neq('status', 'cancelada') // el estado en BD es 'cancelada' (español)
       .order('start_at')
       .limit(6)
+    if (err) { setError(err.message); return }
     setProximas((data as unknown as Cita[]) || [])
   }
 
   useEffect(() => { cargarDia() }, [fecha])
   useEffect(() => { cargarProximas() }, [])
 
-  const activas = citas.filter(c => c.status !== 'cancelled').length
-  const canceladas = citas.filter(c => c.status === 'cancelled').length
+  // "activas" = todo lo que NO está cancelado (confirmada, reprogramada, completada…)
+  const activas = citas.filter(c => c.status !== 'cancelada').length
+  const canceladas = citas.filter(c => c.status === 'cancelada').length
   const siguiente = proximas[0]
 
   return (
     <AppShell titulo="Resumen general">
+      {/* Aviso si alguna consulta a Supabase falló (antes se ocultaba) */}
+      <Aviso mensaje={error} />
+
       {/* Fila de KPIs — estilo Nixtio: números grandes, tarjeta oscura de acento */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {/* Tarjeta oscura destacada */}

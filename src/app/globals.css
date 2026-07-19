@@ -65,12 +65,23 @@ html {
 .card:hover {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
 }
-/* Tarjeta oscura de acento (KPI destacado) */
+/* Tarjeta oscura de acento (KPI destacado) — usa rosa/oro de la marca */
 .card-dark {
   background: #1a1614;
   color: #ffffff;
   border-radius: 1.5rem;
   padding: 1.5rem;
+  border: 1px solid rgba(216, 167, 177, 0.25); /* borde rosa tenue */
+}
+/* Detalle de esquina en oro (toque de la landing) */
+.card-dark::after {
+  content: "";
+  display: block;
+  width: 36px;
+  height: 3px;
+  margin-top: 0.75rem;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #D8A7B1, #B08D57); /* rosa -> oro */
 }
 /* Número KPI grande estilo dashboard moderno */
 .kpi {

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import AppShell from '@/components/AppShell'
 import Donut from '@/components/Donut'
+import Aviso from '@/components/Aviso'
 
 // Tipos de las consultas
 type Cita = {
@@ -25,6 +26,7 @@ const COLORS = ['#e11d48', '#f43f5e', '#fb7185', '#fda4af', '#f97316', '#fb923c'
 export default function MetricasPage() {
   const supabase = createClient()
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null) // aviso si falla la carga
 
   // Datos para los donuts
   const [serviciosTop, setServiciosTop] = useState<{ label: string; value: number; color: string }[]>([])
@@ -42,11 +44,17 @@ export default function MetricasPage() {
 
   async function cargar() {
     // Traemos citas + catálogo de servicios + estilistas
-    const [{ data: a }, { data: s }, { data: st }] = await Promise.all([
+    const [{ data: a, error: eA }, { data: s, error: eS }, { data: st, error: eSt }] = await Promise.all([
       supabase.from('appointments').select('service_id, stylist_id, start_at, status, client_id, services(name)'),
       supabase.from('services').select('id, name, price'),
       supabase.from('stylists').select('id, full_name'),
     ])
+    // Si cualquier consulta falla, lo avisamos (antes quedaba en silencio)
+    if (eA || eS || eSt) {
+      setError(eA?.message || eS?.message || eSt?.message || 'Error al cargar las métricas')
+      setLoading(false)
+      return
+    }
     const citas = ((a as unknown as Cita[]) || [])
     const servicios = (s as Servicio[]) || []
     const estilistas = (st as Stylist[]) || []
@@ -148,6 +156,9 @@ export default function MetricasPage() {
 
   return (
     <AppShell titulo="Métricas">
+      {/* Aviso si la carga falló (antes se mostraban donuts vacíos en silencio) */}
+      <Aviso mensaje={error} />
+
       <h2 className="text-lg font-semibold text-gray-800 mb-4">Panel de métricas</h2>
 
           {/* Tarjetas resumen */}

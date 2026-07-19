@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import AppShell from '@/components/AppShell'
 import { useActiveBusiness } from '@/hooks/useBusiness'
+import Aviso from '@/components/Aviso'
 
 // Cliente base (tabla clients ya existe en la BD)
 type Cliente = {
@@ -43,6 +44,9 @@ export default function ClientesPage() {
   const { activeId } = useActiveBusiness()
   const [clientes, setClientes] = useState<ClienteView[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null) // aviso si falla la carga
+  const [hayMas, setHayMas] = useState(false) // ¿quedan más clientes por cargar?
+  const LOTE = 50 // cuántos clientes traemos por página
 
   // Campos del formulario para agregar cliente
   const [nombre, setNombre] = useState('')
@@ -51,16 +55,24 @@ export default function ClientesPage() {
   const [categoria, setCategoria] = useState('nuevo')
   const [cumple, setCumple] = useState('')
 
-  async function cargar() {
-    // Traemos clientes y citas (no canceladas) para enriquecer
-    const [{ data: c }, { data: a }] = await Promise.all([
-      supabase.from('clients').select('*').order('full_name'),
-      supabase.from('appointments').select('client_id, service_id, start_at, status, services(name)').neq('status', 'cancelada'),
+  // Trae un lote de clientes (desde `desde` hasta `desde+LOTE-1`) y los
+  // enriquece con sus citas. Acumula con los que ya había en pantalla.
+  async function cargar(desde = 0, acumulados: ClienteView[] = []) {
+    setLoading(true)
+    // Traemos un lote de clientes PAGINADO + un lote de citas (no canceladas).
+    // Las citas las limitamos a las últimas 500 del negocio: suficiente para
+    // calcular "última visita / servicio" sin cargar toda la historia.
+    const [{ data: c, error: eC }, { data: a, error: eA }] = await Promise.all([
+      supabase.from('clients').select('*', { count: 'exact' }).order('full_name').range(desde, desde + LOTE - 1),
+      supabase.from('appointments').select('client_id, service_id, start_at, status, services(name)').neq('status', 'cancelada').order('start_at', { ascending: false }).limit(500),
     ])
+    if (eC || eA) {
+      setError(eC?.message || eA?.message || 'Error al cargar los datos')
+      setLoading(false)
+      return
+    }
     const citas = (a as unknown as Cita[]) || []
-
-    // Para cada cliente, calculamos última visita, servicio y nº de visitas
-    const enriquecidos = ((c as Cliente[]) || []).map(cl => {
+    const nuevos = ((c as Cliente[]) || []).map(cl => {
       const propias = citas.filter(x => x.client_id === cl.id)
       const ordenadas = propias.sort((x, y) => y.start_at.localeCompare(x.start_at))
       const ultima = ordenadas[0]
@@ -71,13 +83,21 @@ export default function ClientesPage() {
         visitas: propias.length,
       }
     })
-
+    // Acumulamos los lotes previos + los nuevos
+    const todos = [...acumulados, ...nuevos]
     // Orden: los que tienen visita reciente primero
-    enriquecidos.sort((x, y) => (y.ultima_visita || '').localeCompare(x.ultima_visita || ''))
-    setClientes(enriquecidos)
+    todos.sort((x, y) => (y.ultima_visita || '').localeCompare(x.ultima_visita || ''))
+    setClientes(todos)
+    // Si trajimos menos que el lote, ya no hay más páginas
+    setHayMas((c as Cliente[] | null)?.length === LOTE)
     setLoading(false)
   }
   useEffect(() => { cargar() }, [])
+
+  // Botón "cargar más": trae el siguiente lote sin perder los anteriores
+  async function cargarMas() {
+    await cargar(clientes.length, clientes)
+  }
 
   async function agregar(e: React.FormEvent) {
     e.preventDefault()
@@ -109,6 +129,9 @@ export default function ClientesPage() {
 
   return (
     <AppShell titulo="Clientes (CRM)">
+      {/* Aviso si la carga falló (antes se mostraba lista vacía en silencio) */}
+      <Aviso mensaje={error} />
+
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-gray-800">Clientes</h2>
         <span className="text-sm text-gray-500">{total} clientes · {vips} VIP</span>
@@ -188,6 +211,18 @@ export default function ClientesPage() {
                 </tbody>
               </table>
             </div>
+            {/* Botón para traer el siguiente lote (paginación) si hay más clientes */}
+            {hayMas && (
+              <div className="flex justify-center mt-4">
+                <button
+                  onClick={cargarMas}
+                  disabled={loading}
+                  className="bg-white border border-gray-200 hover:border-rose-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors"
+                >
+                  {loading ? 'Cargando…' : 'Cargar más clientes'}
+                </button>
+              </div>
+            )}
           )}
     </AppShell>
   )
