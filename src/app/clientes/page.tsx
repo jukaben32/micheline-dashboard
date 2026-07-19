@@ -168,7 +168,9 @@ export default function ClientesPage() {
           </form>
 
           {/* Tabla de clientes */}
-          {loading ? <p className="text-gray-400">Cargando…</p> : (
+          {loading ? (
+            <p className="text-gray-400">Cargando…</p>
+          ) : (
             <div className="bg-white border border-[#ece8e5] rounded-2xl shadow-sm overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 text-gray-500 text-left">
@@ -183,7 +185,7 @@ export default function ClientesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {clientes.map(c => (
+                  {clientes.map((c) => (
                     <tr key={c.id} className="border-t hover:bg-gray-50">
                       <td className="px-4 py-2 font-medium text-gray-800">{c.full_name}</td>
                       <td className="px-4 py-2 text-gray-600">{c.phone || '—'}</td>
@@ -194,7 +196,7 @@ export default function ClientesPage() {
                       <td className="px-4 py-2">
                         <select
                           value={c.category}
-                          onChange={e => cambiarCategoria(c.id, e.target.value)}
+                          onChange={(e) => cambiarCategoria(c.id, e.target.value)}
                           className={`text-xs rounded px-2 py-1 ${CAT_COLOR[c.category] || 'bg-gray-100'}`}
                         >
                           <option value="nuevo">Nuevo</option>
@@ -211,18 +213,19 @@ export default function ClientesPage() {
                 </tbody>
               </table>
             </div>
-            {/* Botón para traer el siguiente lote (paginación) si hay más clientes */}
-            {hayMas && (
-              <div className="flex justify-center mt-4">
-                <button
-                  onClick={cargarMas}
-                  disabled={loading}
-                  className="bg-white border border-gray-200 hover:border-rose-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors"
-                >
-                  {loading ? 'Cargando…' : 'Cargar más clientes'}
-                </button>
-              </div>
-            )}
+          )}
+
+          {/* Botón para traer el siguiente lote (paginación) si hay más clientes */}
+          {hayMas && (
+            <div className="flex justify-center mt-4">
+              <button
+                onClick={cargarMas}
+                disabled={loading}
+                className="bg-white border border-gray-200 hover:border-rose-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors"
+              >
+                {loading ? 'Cargando…' : 'Cargar más clientes'}
+              </button>
+            </div>
           )}
     </AppShell>
   )
