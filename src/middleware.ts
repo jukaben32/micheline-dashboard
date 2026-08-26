@@ -30,9 +30,10 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Rutas publicas que NO se protegen (login, registro, recuperar)
+  // Rutas publicas que NO se protegen (login, recuperar).
+  // /registro se quito: el alta de cuentas nuevas es solo por invitacion,
+  // vía /alta-cliente (protegida, solo super_admin).
   const isAuthPage = request.nextUrl.pathname.startsWith('/login') ||
-    request.nextUrl.pathname.startsWith('/registro') ||
     request.nextUrl.pathname.startsWith('/recuperar')
 
   if (!user && !isAuthPage) {

@@ -77,7 +77,6 @@ export default function LoginPage() {
 
         {error && <p className="mt-3 text-xs text-red-600 text-center">{error}</p>}
         <div className="mt-4 flex flex-col items-center gap-1 text-[11px] text-center text-gray-400">
-          <Link href="/registro" className="text-rose-600 font-medium">¿No tienes cuenta? Regístrate</Link>
           <Link href="/recuperar" className="hover:text-rose-600">Olvidé mi contraseña</Link>
         </div>
       </div>
