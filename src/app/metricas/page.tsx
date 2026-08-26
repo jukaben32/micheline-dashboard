@@ -42,6 +42,12 @@ export default function MetricasPage() {
   const [clientesUnicos, setClientesUnicos] = useState(0)
   const [ingresoEstimado, setIngresoEstimado] = useState(0)
 
+  // Consumo de APIs (ultimos 30 dias)
+  const [chatMensajes, setChatMensajes] = useState(0)
+  const [chatCostoUsd, setChatCostoUsd] = useState(0)
+  const [vozLlamadas, setVozLlamadas] = useState(0)
+  const [vozMinutos, setVozMinutos] = useState(0)
+
   async function cargar() {
     // Traemos citas + catálogo de servicios + estilistas
     const [{ data: a, error: eA }, { data: s, error: eS }, { data: st, error: eSt }] = await Promise.all([
@@ -150,6 +156,20 @@ export default function MetricasPage() {
     // Resumen
     setTotalCitas(citas.length)
     setClientesUnicos(new Set(citas.map(c => c.client_id).filter(Boolean)).size)
+
+    // --- Consumo de APIs (ultimos 30 dias) ---
+    const hace30dias = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+    const { data: usage } = await supabase
+      .from('api_usage_events').select('provider, event_type, seconds, estimated_cost_usd')
+      .gte('created_at', hace30dias)
+    const eventos = usage || []
+    const chats = eventos.filter(e => e.provider === 'anthropic')
+    const llamadas = eventos.filter(e => e.provider === 'openai_realtime')
+    setChatMensajes(chats.length)
+    setChatCostoUsd(chats.reduce((s, e) => s + (Number(e.estimated_cost_usd) || 0), 0))
+    setVozLlamadas(llamadas.length)
+    setVozMinutos(llamadas.reduce((s, e) => s + (Number(e.seconds) || 0), 0) / 60)
+
     setLoading(false)
   }
   useEffect(() => { cargar() }, [])
@@ -213,6 +233,22 @@ export default function MetricasPage() {
               </GraficaCard>
             </div>
           )}
+
+      {!loading && (
+        <>
+          <h2 className="text-lg font-semibold text-gray-800 mt-10 mb-4">Consumo de APIs (últimos 30 días)</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <ResumenCard label="Mensajes de IA (chat + WhatsApp)" valor={String(chatMensajes)} icono="💬" acento="violet" />
+            <ResumenCard label="Costo Anthropic (real)" valor={`$${chatCostoUsd.toFixed(4)}`} icono="💵" acento="amber" />
+            <ResumenCard label="Llamadas de voz" valor={String(vozLlamadas)} icono="🎙️" acento="rose" />
+            <ResumenCard label="Minutos de voz" valor={vozMinutos.toFixed(1)} icono="⏱️" acento="violet" />
+          </div>
+          <p className="text-xs text-gray-400 mt-3">
+            El costo de Anthropic se calcula con los tokens reales que reporta cada respuesta (precios: $1/$5 por millón de tokens de entrada/salida, Claude Haiku 4.5).
+            Las llamadas de voz muestran minutos reales; el costo exacto de OpenAI Realtime se revisa en <span className="font-mono">platform.openai.com/usage</span> (no lo calculamos aquí para no mostrar un número inventado).
+          </p>
+        </>
+      )}
     </AppShell>
   )
 }

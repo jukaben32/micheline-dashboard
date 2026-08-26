@@ -45,6 +45,9 @@ export default function BookingModal({ business, services, stylists, onClose }: 
 }) {
   const [tab, setTab] = useState<'book' | 'chat' | 'call'>('book')
   const voice = useRealtimeVoice()
+  // Identifica esta conversacion para el registro en /conversaciones (el
+  // visitante web no tiene telefono como WhatsApp) - una por apertura del modal.
+  const [chatSessionId] = useState(() => crypto.randomUUID())
   const [step, setStep] = useState(1)
 
   const [service, setService] = useState<Service | null>(null)
@@ -177,7 +180,7 @@ export default function BookingModal({ business, services, stylists, onClose }: 
       const res = await fetch(`${SUPABASE_URL}/functions/v1/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ANON}` },
-        body: JSON.stringify({ message: text, history, business_id: business.id }),
+        body: JSON.stringify({ message: text, history, business_id: business.id, session_id: chatSessionId }),
       })
       const data = await res.json()
       setChatMessages(h => [...h, { role: 'assistant', content: data.reply || 'No pude responder ahora.' }])

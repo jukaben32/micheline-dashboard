@@ -4,13 +4,23 @@ import { useCallback, useRef, useState } from 'react'
 
 // Cliente WebRTC para la Realtime API de OpenAI. El audio viaja directo
 // entre el navegador y OpenAI (peer-to-peer) — este servidor solo mintea
-// un token efimero de sesion (/api/realtime/session) y ejecuta las
-// herramientas que la IA pida (/api/realtime/tools). La clave real de
-// OpenAI nunca llega al navegador.
+// un token efimero de sesion (/api/realtime/session), ejecuta las
+// herramientas que la IA pida (/api/realtime/tools), y registra la
+// transcripcion + duracion (/api/realtime/message, /api/realtime/end)
+// para /conversaciones y /metricas. La clave real de OpenAI nunca llega
+// al navegador.
 const REALTIME_URL = 'https://api.openai.com/v1/realtime/calls'
 const MAX_CALL_MS = 5 * 60 * 1000 // corte de seguridad: 5 min por llamada
 
 export type VoiceStatus = 'idle' | 'connecting' | 'active' | 'ending' | 'error'
+
+function saveTranscript(businessId: string, sessionId: string, role: 'user' | 'assistant', content: string) {
+  fetch('/api/realtime/message', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ business_id: businessId, session_id: sessionId, role, content }),
+  }).catch(() => {})
+}
 
 export function useRealtimeVoice() {
   const [status, setStatus] = useState<VoiceStatus>('idle')
@@ -20,6 +30,7 @@ export function useRealtimeVoice() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const sessionRef = useRef<{ businessId: string; sessionId: string; startedAt: number } | null>(null)
 
   const endCall = useCallback(() => {
     setStatus('ending')
@@ -30,6 +41,18 @@ export function useRealtimeVoice() {
     audioRef.current?.remove()
     pcRef.current = null
     dcRef.current = null
+
+    const active = sessionRef.current
+    if (active) {
+      const seconds = (Date.now() - active.startedAt) / 1000
+      fetch('/api/realtime/end', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ business_id: active.businessId, seconds }),
+      }).catch(() => {})
+      sessionRef.current = null
+    }
+
     setStatus('idle')
   }, [])
 
@@ -48,6 +71,8 @@ export function useRealtimeVoice() {
         throw new Error(body?.message || body?.error || `No se pudo iniciar la llamada (${res.status})`)
       }
       const session = await res.json()
+      const sessionId = crypto.randomUUID()
+      sessionRef.current = { businessId, sessionId, startedAt: Date.now() }
 
       const pc = new RTCPeerConnection()
       pcRef.current = pc
@@ -71,6 +96,7 @@ export function useRealtimeVoice() {
 
       dc.addEventListener('message', async (event) => {
         const msg = JSON.parse(event.data)
+
         if (msg.type === 'response.function_call_arguments.done') {
           const args = JSON.parse(msg.arguments || '{}')
           const toolRes = await fetch('/api/realtime/tools', {
@@ -84,6 +110,15 @@ export function useRealtimeVoice() {
             item: { type: 'function_call_output', call_id: msg.call_id, output: JSON.stringify(toolRes) },
           }))
           dc.send(JSON.stringify({ type: 'response.create' }))
+        }
+
+        // Transcripcion de lo que dice la asistente.
+        if (msg.type === 'response.output_audio_transcript.done' && msg.transcript) {
+          saveTranscript(businessId, sessionId, 'assistant', msg.transcript)
+        }
+        // Transcripcion de lo que dice quien llama.
+        if (msg.type === 'conversation.item.input_audio_transcription.completed' && msg.transcript) {
+          saveTranscript(businessId, sessionId, 'user', msg.transcript)
         }
       })
 

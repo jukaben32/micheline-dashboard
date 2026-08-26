@@ -15,6 +15,7 @@ const items = [
   { href: '/productos', label: 'Productos', icon: '📦', match: '/productos' },
   { href: '/clientes', label: 'Clientes', icon: '👥', match: '/clientes' },
   { href: '/metricas', label: 'Métricas', icon: '📊', match: '/metricas' },
+  { href: '/conversaciones', label: 'Conversaciones', icon: '🗨️', match: '/conversaciones' },
   { href: '/website', label: 'Mi sitio web', icon: '🌐', match: '/website' },
 ]
 
