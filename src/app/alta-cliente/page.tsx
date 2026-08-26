@@ -6,6 +6,14 @@ import { useRouter } from 'next/navigation'
 import AppShell from '@/components/AppShell'
 import { useProfile } from '@/hooks/useBusiness'
 
+function slugify(name: string) {
+  return name
+    .toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '') // quita acentos
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
 // Pagina para que el SUPER ADMIN de alta un nuevo cliente (negocio + su usuario admin).
 // Flujo: crea el negocio, crea el usuario en Auth y le asigna perfil de admin.
 export default function AltaClientePage() {
@@ -38,6 +46,12 @@ export default function AltaClientePage() {
         .single()
       if (eNeg) throw eNeg
       const businessId = (negocio as { id: string }).id
+
+      // 1b) Slug para la landing publica (/sites/[slug]) + fila inicial de
+      //     su sitio, sin publicar hasta que el dueno lo configure.
+      const slug = `${slugify(nombreNegocio)}-${businessId.slice(0, 6)}`
+      await supabase.from('business').update({ slug }).eq('id', businessId)
+      await supabase.from('websites').insert({ business_id: businessId, is_published: false, site_title: nombreNegocio })
 
       // 2) Crear el usuario admin en Auth
       const { data: authData, error: eAuth } = await supabase.auth.signUp({

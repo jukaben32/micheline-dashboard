@@ -90,3 +90,18 @@ html {
   font-weight: 700;
   letter-spacing: -0.02em;
 }
+
+/* Input de formulario reutilizable (mismo estilo que ya usan las paginas
+   de servicios/estilistas/alta-cliente, factorizado para el editor de sitio) */
+.input {
+  width: 100%;
+  border: 1px solid #e5e7eb; /* gray-200 */
+  border-radius: 0.5rem; /* rounded-lg */
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+.input:focus {
+  border-color: #fda4af; /* rose-300 */
+}

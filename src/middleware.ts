@@ -52,5 +52,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
+  // /sites/* es la landing publica de cada negocio (sin sesion, cualquiera
+  // debe poder verla) — se excluye por completo del chequeo de auth.
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|sites|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 }
