@@ -52,7 +52,9 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // /sites/* es la landing publica de cada negocio (sin sesion, cualquiera
-  // debe poder verla) — se excluye por completo del chequeo de auth.
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|sites|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
+  // /sites/* es la landing publica de cada negocio, y /api/realtime/* son
+  // las rutas que esa landing llama para la llamada de voz con IA — ambas
+  // sin sesion, cualquier visitante debe poder usarlas. Se excluyen del
+  // chequeo de auth.
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|sites|api/realtime|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 }

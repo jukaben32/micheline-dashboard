@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import type { Business, Service, Stylist } from '@/types/site'
+import { useRealtimeVoice } from './useRealtimeVoice'
 
 // Web Speech API no tiene tipos oficiales en TS/DOM lib todavia.
 type SpeechRecognitionLike = {
@@ -42,7 +43,8 @@ export default function BookingModal({ business, services, stylists, onClose }: 
   stylists: Stylist[]
   onClose: () => void
 }) {
-  const [tab, setTab] = useState<'book' | 'chat'>('book')
+  const [tab, setTab] = useState<'book' | 'chat' | 'call'>('book')
+  const voice = useRealtimeVoice()
   const [step, setStep] = useState(1)
 
   const [service, setService] = useState<Service | null>(null)
@@ -194,6 +196,13 @@ export default function BookingModal({ business, services, stylists, onClose }: 
 
   const canNext = step === 1 ? !!service : step === 2 ? stylistPicked : step === 3 ? !!(date && time) : true
 
+  // Colgar la llamada si el modal se cierra/desmonta, para no dejar audio
+  // corriendo en segundo plano.
+  useEffect(() => {
+    return () => { voice.endCall() }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // Calendario
   const firstDow = new Date(calYear, calMonth, 1).getDay()
   const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate()
@@ -214,6 +223,7 @@ export default function BookingModal({ business, services, stylists, onClose }: 
         <div id="bm-tabs">
           <button className={`bm-tab ${tab === 'book' ? 'active' : ''}`} onClick={() => setTab('book')}>📅 Reservar</button>
           <button className={`bm-tab ${tab === 'chat' ? 'active' : ''}`} onClick={() => setTab('chat')}>💬 Asistente</button>
+          <button className={`bm-tab ${tab === 'call' ? 'active' : ''}`} onClick={() => setTab('call')}>🎙️ Llamar</button>
         </div>
 
         {tab === 'book' && !success && (
@@ -394,6 +404,32 @@ export default function BookingModal({ business, services, stylists, onClose }: 
                 <button id="chat-send" onClick={() => sendChat()} aria-label="Enviar">➤</button>
               </div>
             </div>
+          </div>
+        )}
+
+        {tab === 'call' && (
+          <div style={{ padding: '2.5rem 2rem', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '1rem' }}>
+            {voice.status === 'idle' && (
+              <>
+                <p style={{ fontSize: '2.5rem' }}>🎙️</p>
+                <p style={{ color: 'var(--site-muted)', maxWidth: '32ch' }}>Habla con nuestra asistente por voz, en tiempo real, para agendar tu cita.</p>
+                <button className="btn-next" style={{ maxWidth: 220 }} onClick={() => voice.startCall(business.id)}>Iniciar llamada</button>
+              </>
+            )}
+            {voice.status === 'connecting' && <p style={{ color: 'var(--site-muted)' }}>Conectando…</p>}
+            {voice.status === 'active' && (
+              <>
+                <p style={{ fontSize: '2.5rem' }}>🔴</p>
+                <p style={{ color: 'var(--site-muted)' }}>Llamada en curso — habla con normalidad.</p>
+                <button className="btn-back" onClick={voice.endCall}>Colgar</button>
+              </>
+            )}
+            {voice.status === 'error' && (
+              <>
+                <p style={{ color: '#DC2626' }}>{voice.error || 'No se pudo iniciar la llamada.'}</p>
+                <button className="btn-next" style={{ maxWidth: 220 }} onClick={() => voice.startCall(business.id)}>Reintentar</button>
+              </>
+            )}
           </div>
         )}
       </div>
