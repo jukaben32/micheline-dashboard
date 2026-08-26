@@ -1,7 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Business, Service, Stylist } from '@/types/site'
+
+// Web Speech API no tiene tipos oficiales en TS/DOM lib todavia.
+type SpeechRecognitionLike = {
+  continuous: boolean
+  interimResults: boolean
+  lang: string
+  start: () => void
+  stop: () => void
+  onresult: ((e: { results: { [i: number]: { [j: number]: { transcript: string } } } }) => void) | null
+  onerror: ((e: unknown) => void) | null
+  onend: (() => void) | null
+}
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -57,6 +69,42 @@ export default function BookingModal({ business, services, stylists, onClose }: 
   ])
   const [chatText, setChatText] = useState('')
   const [chatSending, setChatSending] = useState(false)
+  const [recording, setRecording] = useState(false)
+  const [voiceSupported, setVoiceSupported] = useState(false)
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null)
+
+  // Dictado por voz: mantener presionado el micro transcribe lo que dices
+  // y lo envia automaticamente (API nativa del navegador, no llamada real).
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any
+    const SpeechRecognitionCtor = w.SpeechRecognition ?? w.webkitSpeechRecognition
+    if (!SpeechRecognitionCtor) return
+    const recognition: SpeechRecognitionLike = new SpeechRecognitionCtor()
+    recognition.continuous = false
+    recognition.interimResults = false
+    recognition.lang = 'es-DO'
+    recognition.onresult = (e) => {
+      const transcript = e.results[0][0].transcript
+      sendChat(transcript)
+    }
+    recognition.onerror = () => setRecording(false)
+    recognition.onend = () => setRecording(false)
+    recognitionRef.current = recognition
+    setVoiceSupported(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  function startVoice() {
+    if (!recognitionRef.current) return
+    if (!recording) {
+      setRecording(true)
+      try { recognitionRef.current.start() } catch { /* ya estaba grabando */ }
+    }
+  }
+  function stopVoice() {
+    if (recognitionRef.current && recording) recognitionRef.current.stop()
+  }
 
   async function pickDate(d: string) {
     setDate(d)
@@ -116,8 +164,8 @@ export default function BookingModal({ business, services, stylists, onClose }: 
     }
   }
 
-  async function sendChat() {
-    const text = chatText.trim()
+  async function sendChat(override?: string) {
+    const text = (override ?? chatText).trim()
     if (!text || chatSending) return
     setChatText('')
     const history = [...chatMessages, { role: 'user' as const, content: text }]
@@ -329,7 +377,21 @@ export default function BookingModal({ business, services, stylists, onClose }: 
                   onKeyDown={(e) => { if (e.key === 'Enter') sendChat() }}
                   placeholder="Escribe tu pregunta..."
                 />
-                <button id="chat-send" onClick={sendChat} aria-label="Enviar">➤</button>
+                {voiceSupported && (
+                  <button
+                    id="chat-voice"
+                    className={recording ? 'recording' : ''}
+                    onMouseDown={startVoice}
+                    onMouseUp={stopVoice}
+                    onTouchStart={startVoice}
+                    onTouchEnd={stopVoice}
+                    title="Mantén presionado para hablar"
+                    aria-label="Dictar por voz"
+                  >
+                    🎤
+                  </button>
+                )}
+                <button id="chat-send" onClick={() => sendChat()} aria-label="Enviar">➤</button>
               </div>
             </div>
           </div>
